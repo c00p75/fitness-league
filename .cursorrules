@@ -1,0 +1,154 @@
+version: 1
+project: fitness-tracker
+
+rules:
+  - name: fitness-tracker-core
+    path: /
+    description: Cursor rules aligned with the Fitness Tracker Technical Design Document (TDD)
+    content: |
+      # 🧭 Context
+      Generate **production-ready, test-driven code** for a gamified Fitness Tracker monorepo.
+
+      Reference the Technical Design Document (TDD) for consistency:
+      - Architecture (§4)
+      - Data model (§5)
+      - API design (§6)
+      - Testing strategy (§7)
+      - CI/CD & environments (§8–9)
+
+      The project uses:
+      - React (Vite, CSR)
+      - TypeScript (strict mode)
+      - TanStack Query
+      - tRPC (typed RPC via Firebase Functions Gen 2)
+      - Firebase (Auth · Firestore · Storage)
+      - Tailwind CSS + shadcn/ui
+      - PNPM Monorepo + Turborepo
+      - Vitest, Playwright, Storybook
+      - Zod for validation
+      - T3 Env for environment variables
+
+      ---
+      ## ⚙️ General Rules
+      - Adhere strictly to the **tech stack and layout** in the TDD (§2–3).
+      - **Do not replace libraries** or patterns from the golden path.
+        - ✅ Use Tailwind CSS / shadcn/ui
+        - ✅ Use TanStack Query for state + data
+        - ❌ No Redux, Axios, or Bootstrap
+      - Always generate **TypeScript-first**, fully typed, and TDD-aligned code.
+      - If context is missing, **ask clarifying questions** before coding.
+      - Follow **Test-Driven Development (TDD)**:  
+        Write or reference tests before implementing features.
+
+      ---
+      ## 🧩 Architecture
+      - Respect separation of concerns:
+        ```
+        apps/web         → React client (UI + client state)
+        functions        → Firebase Functions (tRPC backend)
+        packages/shared  → Zod schemas & shared types
+        ```
+      - Architecture flow:  
+        **UI (CSR) ↔ TanStack Query ↔ tRPC API ↔ Firestore**
+      - Keep modules small, single-purpose, and composable.
+      - Never bypass tRPC for backend access except for Firestore `onSnapshot`.
+
+      ---
+      ## 🛠️ API & Data
+      - Define **tRPC routers** under `functions/src/routers`.
+        - Use `query()` for reads and `mutation()` for writes.
+        - Always validate input/output with Zod schemas (`packages/shared`).
+      - Secure all procedures:
+        ```ts
+        if (!ctx.auth?.uid) throw new TRPCError({ code: 'UNAUTHORIZED' });
+        ```
+      - Prefer Firestore collections with user scoping:  
+        `users/{uid}/workoutLogs`, `users/{uid}/goals`
+      - Follow Firestore indexing and denormalization guidance (§5, §10).
+
+      ---
+      ## 🔄 Client Data Handling
+      - Use **TanStack Query** for all data fetching and mutations.
+      - Manage state through query hooks (no context for server data).
+      - Always invalidate relevant queries on successful mutations.
+      - Use React Query DevTools during dev, remove in prod builds.
+      - For realtime updates, use **Firebase onSnapshot** where allowed.
+
+      ---
+      ## 🎨 UI & Accessibility
+      - All UI components use **Tailwind CSS** and **shadcn/ui**.
+      - Must meet **WCAG 2.1 AA** accessibility.
+      - Use semantic HTML, ARIA roles, keyboard/focus states.
+      - Document components with **Storybook**; provide stories and tests.
+      - Keep all components visually tested and responsive.
+
+      ---
+      ## 🧾 Testing (TDD Enforcement)
+      Follow TDD from the TDD’s §7:
+
+      | Level | Tool | Scope |
+      | ------ | ---- | ----- |
+      | Unit | Vitest | Utilities, hooks |
+      | Component | Vitest + Testing Library | React components |
+      | Visual | Storybook + @storybook/testing-library | UI states |
+      | E2E | Playwright | Auth flows, full user journeys |
+
+      - Write a failing test before implementing new logic.
+      - Run `pnpm test --watch` while developing.
+      - Use `packages/seeding` for emulator-based fixture setup.
+
+      ---
+      ## 🧱 Code Style
+      - TypeScript everywhere; strict mode enforced.
+      - Use `interface` for objects, `type` for unions.
+      - Functional components only.
+      - Descriptive names (`isLoading`, `hasError`, `canSubmit`).
+      - Follow ESLint and Prettier rules from TDD (§13).
+      - Kebab-case for folders, PascalCase for components.
+
+      ---
+      ## 🔒 Security
+      - Firebase Auth guards all private data.
+      - Firestore access rules mirror schema boundaries:
+        - `users/{uid}` → private user data
+        - `public/*` → read-only
+      - Secrets via:
+        - `firebase functions:config:set`
+        - `.env` validated by **T3 Env**
+      - Enforce least-privilege access patterns.
+
+      ---
+      ## ⚙️ CI/CD Integration
+      Follow the TDD pipeline (§8–9):
+      - Run typecheck + lint before tests.
+      - Build Storybook in preview environments.
+      - Deploy preview on PR → promote to prod after merge.
+      - Use Changesets for releases.
+      - All builds must pass before deployment.
+
+      ---
+      ## 🧩 Example — tRPC Mutation (Scoped & Typed)
+      ```ts
+      // functions/src/routers/workout.ts
+      import { protectedProcedure } from '../trpc';
+      import { ExerciseLogSchema } from '../../shared/schemas/log';
+      import { TRPCError } from '@trpc/server';
+
+      export const createWorkout = protectedProcedure
+        .input(ExerciseLogSchema)
+        .mutation(async ({ input, ctx }) => {
+          if (!ctx.auth?.uid) throw new TRPCError({ code: 'UNAUTHORIZED' });
+
+          const userRef = ctx.db.collection(`users/${ctx.auth.uid}/workoutLogs`);
+          const doc = await userRef.add(input);
+
+          return { success: true, logId: doc.id };
+        });
+      ```
+
+      ---
+      ## ✅ Final Guidelines
+      - Align every implementation with TDD sections and monorepo layout.
+      - Provide tests, docs, and Storybook entries for each component.
+      - Keep PRs small, clear, and type-safe.
+      - Prioritize clarity, composability, and security over cleverness.

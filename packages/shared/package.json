@@ -1,0 +1,24 @@
+{
+  "name": "@fitness-league/shared",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Shared types, schemas, and utilities for Fitness League",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@fitness-league/tsconfig": "workspace:*",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.2"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "fitness-league",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A gamified fitness tracking web app with personalized workout plans",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "playwright test",
+    "test:ui": "vitest --ui",
+    "storybook": "turbo run storybook",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build --filter=!@fitness-league/docs && changeset publish",
+    "setup": "./scripts/setup-dev.sh",
+    "seed": "./scripts/seed-emulator.sh",
+    "deploy": "pnpm build && firebase deploy"
+  },
+
+  "packageManager": "pnpm@8.15.1",
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

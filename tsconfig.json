@@ -1,0 +1,67 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./apps/web/src/*"],
+      "@fitness-league/shared": ["./packages/shared/src"],
+      "@fitness-league/ui": ["./packages/ui/src"],
+      "@fitness-league/env": ["./packages/env/src"],
+      "@fitness-league/seeding": ["./packages/seeding/src"]
+    }
+  },
+  "include": [
+    "apps/**/*",
+    "functions/**/*",
+    "packages/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "coverage",
+    "test-results",
+    "playwright-report",
+    "storybook-static"
+  ],
+  "references": [
+    {
+      "path": "./apps/web"
+    },
+    {
+      "path": "./functions"
+    },
+    {
+      "path": "./packages/shared"
+    },
+    {
+      "path": "./packages/ui"
+    },
+    {
+      "path": "./packages/env"
+    },
+    {
+      "path": "./packages/seeding"
+    },
+    {
+      "path": "./packages/tsconfig"
+    }
+  ]
+}

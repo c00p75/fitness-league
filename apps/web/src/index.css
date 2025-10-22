@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 2%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 195 100% 70%;
+    --primary-foreground: 0 0% 0%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 195 100% 70%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-fitness-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer components {
+  .fitness-gradient {
+    @apply bg-gradient-to-tr from-fitness-gradient-from to-fitness-gradient-to;
+  }
+  
+  .fitness-card {
+    @apply rounded-2xl bg-gradient-to-tr from-neutral-900 to-neutral-800 text-white hover:shadow-lg transition-all;
+  }
+  
+  .fitness-button {
+    @apply bg-fitness-primary hover:bg-fitness-primary-dark text-black font-semibold px-4 py-2 rounded-xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-fitness-primary;
+  }
+}
