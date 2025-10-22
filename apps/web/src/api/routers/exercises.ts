@@ -1,7 +1,15 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure } from "../trpc";
-import { ExerciseSearchSchema } from "@fitness-league/shared";
+
+// Define schemas locally to avoid import issues
+const ExerciseSearchSchema = z.object({
+  query: z.string().optional(),
+  category: z.string().optional(),
+  difficulty: z.string().optional(),
+  equipment: z.string().optional(),
+  limit: z.number().min(1).max(50).default(20),
+});
 
 const PROJECT_ID = "fit-league-930c6";
 

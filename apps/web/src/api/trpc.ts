@@ -1,5 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { Context } from "./context";
+import { Context, AuthenticatedContext } from "./context";
 
 const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
@@ -30,7 +30,7 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     ctx: {
       ...ctx,
       auth: ctx.auth, // Now guaranteed to be defined
-    },
+    } as AuthenticatedContext,
   });
 });
 

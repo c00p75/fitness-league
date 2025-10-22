@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:server": "node server.js",
+    "dev:server": "tsx watch server.ts",
     "dev:full": "concurrently \"npm run dev:server\" \"npm run dev\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
@@ -65,6 +65,7 @@
     "autoprefixer": "^10.4.17",
     "concurrently": "^8.2.2",
     "eslint": "^8.56.0",
+    "tsx": "^4.7.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "jsdom": "^24.0.0",

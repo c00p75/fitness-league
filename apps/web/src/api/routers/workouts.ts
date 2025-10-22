@@ -1,7 +1,27 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
-import { CreateWorkoutPlanSchema, UpdateWorkoutSessionSchema } from "@fitness-league/shared";
+
+// Define schemas locally to avoid import issues
+const CreateWorkoutPlanSchema = z.object({
+  goalId: z.string(),
+  durationWeeks: z.number().min(1).max(52),
+  workoutsPerWeek: z.number().min(1).max(7),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+});
+
+const UpdateWorkoutSessionSchema = z.object({
+  sessionId: z.string(),
+  exercises: z.array(z.object({
+    exerciseId: z.string(),
+    completed: z.boolean(),
+    sets: z.array(z.object({
+      reps: z.number().optional(),
+      weight: z.number().optional(),
+      duration: z.number().optional(),
+    })),
+  })),
+});
 
 const PROJECT_ID = "fit-league-930c6";
 

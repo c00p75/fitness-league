@@ -1,6 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { auth } from "../context";
+import { z } from "zod";
 
 export const authRouter = router({
   // Get current user info
@@ -28,7 +29,7 @@ export const authRouter = router({
 
   // Create user profile after signup
   createUserProfile: protectedProcedure
-    .input(require("zod").z.object({ email: require("zod").z.string().email() }))
+    .input(z.object({ email: z.string().email() }))
     .mutation(async ({ input, ctx }) => {
       if (!ctx.auth?.uid) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
