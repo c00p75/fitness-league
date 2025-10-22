@@ -1,7 +1,15 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
-import { CreateGoalSchema } from "@fitness-league/shared";
+
+// Define schemas locally to avoid import issues
+const CreateGoalSchema = z.object({
+  type: z.enum(["weight_loss", "muscle_gain", "flexibility", "general_fitness", "endurance_improvement", "strength_gain"]),
+  targetValue: z.number().min(0.1, "Target value must be greater than 0"),
+  unit: z.string().min(1, "Unit is required"),
+  targetDate: z.coerce.date(),
+  startDate: z.coerce.date().optional(),
+});
 
 const PROJECT_ID = "fit-league-930c6";
 
@@ -86,7 +94,7 @@ export const goalsRouter = router({
       type: z.string().optional(),
       targetValue: z.number().optional(),
       unit: z.string().optional(),
-      targetDate: z.date().optional(),
+      targetDate: z.coerce.date().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.auth?.uid) {

@@ -1,6 +1,27 @@
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
-import { OnboardingInputSchema, OnboardingStatusSchema } from "@fitness-league/shared";
+import { z } from "zod";
+
+// Define schemas locally to avoid import issues
+const BiometricsSchema = z.object({
+  age: z.number().min(13, "Must be at least 13 years old").max(120, "Invalid age"),
+  height: z.number().min(100, "Height must be at least 100cm").max(250, "Height must be less than 250cm"),
+  weight: z.number().min(30, "Weight must be at least 30kg").max(300, "Weight must be less than 300kg"),
+  gender: z.enum(["male", "female", "other"]),
+});
+
+const OnboardingInputSchema = z.object({
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
+  fitnessGoals: z.array(z.string()),
+  availableTime: z.number().min(15).max(180),
+  biometrics: BiometricsSchema,
+});
+
+const OnboardingStatusSchema = z.object({
+  isCompleted: z.boolean(),
+  completedAt: z.coerce.date().optional(),
+  currentStep: z.number().min(1).max(3),
+});
 
 export const onboardingRouter = router({
   // Submit onboarding data

@@ -1,6 +1,29 @@
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
-import { UserProfileSchema, UpdateProfileSchema } from "@fitness-league/shared";
+import { z } from "zod";
+
+// Define schemas locally to avoid import issues
+const BiometricsSchema = z.object({
+  age: z.number().min(13, "Must be at least 13 years old").max(120, "Invalid age"),
+  height: z.number().min(100, "Height must be at least 100cm").max(250, "Height must be less than 250cm"),
+  weight: z.number().min(30, "Weight must be at least 30kg").max(300, "Weight must be less than 300kg"),
+  gender: z.enum(["male", "female", "other"]),
+});
+
+const UserProfileSchema = z.object({
+  uid: z.string(),
+  email: z.string().email(),
+  displayName: z.string().min(1, "Display name is required").max(50, "Display name too long"),
+  avatarUrl: z.string().url().optional(),
+  biometrics: BiometricsSchema,
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+const UpdateProfileSchema = z.object({
+  displayName: z.string().min(1, "Display name is required").max(50, "Display name too long").optional(),
+  biometrics: BiometricsSchema.partial().optional(),
+});
 
 export const userRouter = router({
   // Get user profile
@@ -76,9 +99,9 @@ export const userRouter = router({
 
   // Upload avatar
   uploadAvatar: protectedProcedure
-    .input(require("zod").z.object({
-      imageData: require("zod").z.string(), // base64 encoded image
-      contentType: require("zod").z.string(),
+    .input(z.object({
+      imageData: z.string(), // base64 encoded image
+      contentType: z.string(),
     }))
     .mutation(async ({ input, ctx }) => {
       if (!ctx.auth?.uid) {
