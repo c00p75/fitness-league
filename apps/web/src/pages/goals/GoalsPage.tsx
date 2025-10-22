@@ -4,11 +4,19 @@ import { trpc } from "../../lib/trpc";
 import { Button } from "@fitness-league/ui";
 import { Plus, Target, TrendingUp, Calendar } from "lucide-react";
 import { CreateGoalModal } from "../../components/goals/CreateGoalModal";
+import { EditGoalModal } from "../../components/goals/EditGoalModal";
 import { GoalCard } from "../../components/goals/GoalCard";
 
 export function GoalsPage() {
   const queryClient = useQueryClient();
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<{
+    id: string;
+    type: string;
+    targetValue: number;
+    unit: string;
+    targetDate: Date;
+  } | null>(null);
 
   // Fetch user goals
   const { data: goals = [], isLoading } = trpc.goals.getGoals.useQuery(undefined);
@@ -22,13 +30,21 @@ export function GoalsPage() {
 
   const handleDeleteGoal = async (goalId: string) => {
     if (window.confirm("Are you sure you want to delete this goal?")) {
-      await deleteGoalMutation.mutateAsync({ id: goalId });
+      await deleteGoalMutation.mutateAsync({ goalId });
     }
   };
 
   const handleEditGoal = (goalId: string) => {
-    // Navigate to edit page or open edit modal
-    console.log("Edit goal:", goalId);
+    const goal = goals.find((g: any) => g.id === goalId);
+    if (goal) {
+      setEditingGoal({
+        id: goal.id,
+        type: goal.type || "general_fitness",
+        targetValue: goal.targetValue || 0,
+        unit: goal.unit || "",
+        targetDate: goal.targetDate?.toDate ? goal.targetDate.toDate() : new Date(goal.targetDate),
+      });
+    }
   };
 
   if (isLoading) {
@@ -177,6 +193,15 @@ export function GoalsPage() {
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
         />
+
+        {/* Edit Goal Modal */}
+        {editingGoal && (
+          <EditGoalModal
+            isOpen={!!editingGoal}
+            onClose={() => setEditingGoal(null)}
+            goal={editingGoal}
+          />
+        )}
       </div>
     </div>
   );
