@@ -8,6 +8,8 @@ import { SignupPage } from "./pages/auth/SignupPage";
 import { OnboardingPage } from "./pages/onboarding/OnboardingPage";
 import { ProfilePage } from "./pages/profile/ProfilePage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
+import { GoalsPage } from "./pages/goals/GoalsPage";
+import { WorkoutsPage } from "./pages/workouts/WorkoutsPage";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 
 function App() {
@@ -56,6 +58,26 @@ function App() {
           <ProtectedRoute>
             <AppLayout>
               <ProfilePage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/goals"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <GoalsPage />
+            </AppLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/workouts"
+        element={
+          <ProtectedRoute>
+            <AppLayout>
+              <WorkoutsPage />
             </AppLayout>
           </ProtectedRoute>
         }

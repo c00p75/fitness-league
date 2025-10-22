@@ -9,6 +9,8 @@ export function Navbar() {
 
   const navItems = [
     { path: "/", label: "Dashboard" },
+    { path: "/goals", label: "Goals" },
+    { path: "/workouts", label: "Workouts" },
     { path: "/profile", label: "Profile" },
   ];
 

@@ -9,7 +9,7 @@ export const trpc = createTRPCReact<AppRouter>();
 export const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc", // Local API endpoint
+      url: "/api/trpc", // Proxied to Express server
       headers() {
         const token = localStorage.getItem("firebase-auth-token");
         return token ? { authorization: `Bearer ${token}` } : {};

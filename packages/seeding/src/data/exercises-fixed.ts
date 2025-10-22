@@ -44,9 +44,9 @@ export const exercises: Exercise[] = [
       "Maintain steady breathing",
       "Cool down with a 5-minute walk"
     ],
-    youtubeVideoId: "1xMaFs0L3ao",
-    videoThumbnail: "https://img.youtube.com/vi/1xMaFs0L3ao/hqdefault.jpg",
-    videoDuration: 300,
+    youtubeVideoId: "IODxDxX7oi4",
+    videoThumbnail: "https://img.youtube.com/vi/IODxDxX7oi4/hqdefault.jpg",
+    videoDuration: 180,
     muscleGroups: ["legs", "core", "cardiovascular"],
   },
   {
@@ -126,8 +126,8 @@ export const exercises: Exercise[] = [
       "Keep knees behind toes",
       "Return to standing position"
     ],
-    youtubeVideoId: "1xMaFs0L3ao",
-    videoThumbnail: "https://img.youtube.com/vi/1xMaFs0L3ao/hqdefault.jpg",
+    youtubeVideoId: "YaXPRqUwItQ",
+    videoThumbnail: "https://img.youtube.com/vi/YaXPRqUwItQ/hqdefault.jpg",
     videoDuration: 120,
     muscleGroups: ["legs", "glutes", "core"],
   },
@@ -191,9 +191,6 @@ export const exercises: Exercise[] = [
       "Raise arms parallel to floor",
       "Hold and breathe"
     ],
-    youtubeVideoId: "ZbtVVYBFCug",
-    videoThumbnail: "https://img.youtube.com/vi/ZbtVVYBFCug/hqdefault.jpg",
-    videoDuration: 180,
     muscleGroups: ["legs", "core", "balance"],
   },
 
@@ -234,9 +231,6 @@ export const exercises: Exercise[] = [
       "Jump back to starting position",
       "Maintain steady rhythm"
     ],
-    youtubeVideoId: "nmwgirgXLYM",
-    videoThumbnail: "https://img.youtube.com/vi/nmwgirgXLYM/hqdefault.jpg",
-    videoDuration: 60,
     muscleGroups: ["legs", "arms", "cardiovascular"],
   },
 
@@ -256,8 +250,8 @@ export const exercises: Exercise[] = [
       "Push back to starting position",
       "Alternate legs"
     ],
-    youtubeVideoId: "COKYKgQ8KR0",
-    videoThumbnail: "https://img.youtube.com/vi/COKYKgQ8KR0/hqdefault.jpg",
+    youtubeVideoId: "3XDriUn0udo",
+    videoThumbnail: "https://img.youtube.com/vi/3XDriUn0udo/hqdefault.jpg",
     videoDuration: 90,
     muscleGroups: ["legs", "glutes", "core"],
   },
@@ -276,9 +270,6 @@ export const exercises: Exercise[] = [
       "Pull elbows back squeezing shoulder blades",
       "Return to starting position"
     ],
-    youtubeVideoId: "GZbfZ033f74",
-    videoThumbnail: "https://img.youtube.com/vi/GZbfZ033f74/hqdefault.jpg",
-    videoDuration: 90,
     muscleGroups: ["back", "biceps", "shoulders"],
   },
 ];
