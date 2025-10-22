@@ -1,7 +1,7 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 import { getAnalytics } from "firebase/analytics";
 import { env } from "@fitness-league/env";
 
@@ -22,6 +22,26 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+
+// Connect to emulators in development
+if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+  // Only connect to emulators if not already connected
+  if (!auth.emulatorConfig) {
+    connectAuthEmulator(auth, "http://localhost:9098");
+  }
+  // Check if Firestore is already connected to emulator
+  try {
+    connectFirestoreEmulator(db, "localhost", 8079);
+  } catch (error) {
+    // Already connected to emulator, ignore error
+  }
+  // Check if Storage is already connected to emulator
+  try {
+    connectStorageEmulator(storage, "localhost", 9198);
+  } catch (error) {
+    // Already connected to emulator, ignore error
+  }
+}
 
 // Initialize Analytics (only in browser environment)
 export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
