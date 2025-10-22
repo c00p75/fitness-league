@@ -21,10 +21,12 @@
     "seed": "./scripts/seed-emulator.sh",
     "deploy": "pnpm build && firebase deploy"
   },
-
   "packageManager": "pnpm@8.15.1",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.8"
   }
 }
