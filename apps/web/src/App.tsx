@@ -10,6 +10,7 @@ import { ProfilePage } from "./pages/profile/ProfilePage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { GoalsPage } from "./pages/goals/GoalsPage";
 import { WorkoutsPage } from "./pages/workouts/WorkoutsPage";
+import { VideosPage } from "./pages/videos/VideosPage";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { Toaster } from "react-hot-toast";
 
@@ -80,6 +81,16 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <WorkoutsPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/videos"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <VideosPage />
               </AppLayout>
             </ProtectedRoute>
           }

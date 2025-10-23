@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { cn } from "@fitness-league/ui";
+import { Button } from "@fitness-league/ui";
+import { Play, Pause, Volume2, VolumeX, Settings, Maximize, RotateCcw } from "lucide-react";
 
 interface YouTubePlayerProps {
   videoId: string;
@@ -12,6 +14,13 @@ interface YouTubePlayerProps {
   onReady?: () => void;
   onEnd?: () => void;
   onError?: (error: string) => void;
+  onProgress?: (progress: number) => void;
+  onComplete?: () => void;
+  onQualityChange?: (quality: string) => void;
+  onSpeedChange?: (speed: number) => void;
+  showControls?: boolean;
+  allowFullscreen?: boolean;
+  trackProgress?: boolean;
   className?: string;
   width?: string | number;
   height?: string | number;
@@ -28,6 +37,13 @@ export function YouTubePlayer({
   onReady,
   onEnd,
   onError,
+  onProgress,
+  onComplete,
+  onQualityChange,
+  onSpeedChange,
+  showControls = true,
+  allowFullscreen = true,
+  trackProgress = false,
   className,
   width = "100%",
   height = "auto",
@@ -35,6 +51,14 @@ export function YouTubePlayer({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(100);
+  const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Generate embed URL with parameters
   const embedUrl = React.useMemo(() => {
@@ -89,11 +113,16 @@ export function YouTubePlayer({
       events: {
         onReady: () => {
           setIsLoading(false);
+          setDuration(player.getDuration());
           onReady?.();
         },
         onStateChange: (event: any) => {
-          if (event.data === window.YT.PlayerState.ENDED) {
+          const state = event.data;
+          setIsPlaying(state === window.YT.PlayerState.PLAYING);
+          
+          if (state === window.YT.PlayerState.ENDED) {
             onEnd?.();
+            onComplete?.();
           }
         },
         onError: (event: any) => {
@@ -103,12 +132,64 @@ export function YouTubePlayer({
       },
     });
 
+    // Track progress if enabled
+    if (trackProgress) {
+      const progressInterval = setInterval(() => {
+        if (player && typeof player.getCurrentTime === 'function') {
+          const time = player.getCurrentTime();
+          setCurrentTime(time);
+          onProgress?.(time);
+        }
+      }, 1000);
+
+      return () => {
+        clearInterval(progressInterval);
+        if (player && typeof player.destroy === 'function') {
+          player.destroy();
+        }
+      };
+    }
+
     return () => {
       if (player && typeof player.destroy === 'function') {
         player.destroy();
       }
     };
-  }, [videoId, onReady, onEnd, onError]);
+  }, [videoId, onReady, onEnd, onError, onProgress, onComplete, trackProgress]);
+
+  // Handle playback speed changes
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+    onSpeedChange?.(speed);
+    // Note: YouTube API doesn't support speed changes via iframe
+    // This would require YouTube Player API implementation
+  };
+
+  // Handle volume changes
+  const handleVolumeChange = (newVolume: number) => {
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
+  // Handle fullscreen toggle
+  const handleFullscreen = () => {
+    if (!allowFullscreen) return;
+    
+    if (!document.fullscreenElement) {
+      iframeRef.current?.requestFullscreen();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen();
+      setIsFullscreen(false);
+    }
+  };
+
+  // Format time for display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   if (hasError) {
     return (
@@ -133,7 +214,7 @@ export function YouTubePlayer({
   }
 
   return (
-    <div className={cn("relative w-full", className)}>
+    <div className={cn("relative w-full group", className)}>
       {/* Loading skeleton */}
       {isLoading && (
         <div 
@@ -167,6 +248,131 @@ export function YouTubePlayer({
         loading="lazy"
         aria-label={`YouTube video player for video ${videoId}`}
       />
+
+      {/* Enhanced Controls Overlay */}
+      {showControls && !isLoading && !hasError && (
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {/* Progress Bar */}
+          {trackProgress && duration > 0 && (
+            <div className="mb-3">
+              <div className="flex items-center justify-between text-white text-sm mb-1">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+              <div className="w-full bg-white/30 rounded-full h-1">
+                <div 
+                  className="bg-white h-1 rounded-full transition-all duration-300"
+                  style={{ width: `${(currentTime / duration) * 100}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Control Buttons */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {/* Play/Pause */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+                onClick={() => {
+                  // Note: This would require YouTube Player API
+                  setIsPlaying(!isPlaying);
+                }}
+              >
+                {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+              </Button>
+
+              {/* Volume */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+                onClick={() => handleVolumeChange(isMuted ? 50 : 0)}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </Button>
+
+              {/* Settings */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                  onClick={() => setShowSettings(!showSettings)}
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+
+                {/* Settings Dropdown */}
+                {showSettings && (
+                  <div className="absolute bottom-full left-0 mb-2 bg-black/90 rounded-lg p-3 min-w-[200px]">
+                    {/* Playback Speed */}
+                    <div className="mb-3">
+                      <label className="text-white text-sm font-medium mb-1 block">Playback Speed</label>
+                      <select
+                        value={playbackSpeed}
+                        onChange={(e) => handleSpeedChange(Number(e.target.value))}
+                        className="w-full bg-white/20 text-white rounded px-2 py-1 text-sm"
+                      >
+                        <option value={0.5}>0.5x</option>
+                        <option value={0.75}>0.75x</option>
+                        <option value={1}>1x</option>
+                        <option value={1.25}>1.25x</option>
+                        <option value={1.5}>1.5x</option>
+                        <option value={2}>2x</option>
+                      </select>
+                    </div>
+
+                    {/* Quality */}
+                    <div className="mb-3">
+                      <label className="text-white text-sm font-medium mb-1 block">Quality</label>
+                      <select
+                        onChange={(e) => onQualityChange?.(e.target.value)}
+                        className="w-full bg-white/20 text-white rounded px-2 py-1 text-sm"
+                      >
+                        <option value="auto">Auto</option>
+                        <option value="1080p">1080p</option>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                        <option value="360p">360p</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {/* Restart */}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white hover:bg-white/20"
+                onClick={() => {
+                  // Note: This would require YouTube Player API
+                  setCurrentTime(0);
+                }}
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+
+              {/* Fullscreen */}
+              {allowFullscreen && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-white hover:bg-white/20"
+                  onClick={handleFullscreen}
+                >
+                  <Maximize className="w-4 h-4" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { onboardingRouter } from "./routers/onboarding";
 import { goalsRouter } from "./routers/goals";
 import { workoutsRouter } from "./routers/workouts";
 import { exercisesRouter } from "./routers/exercises";
+import { videosRouter } from "./routers/videos";
 
 // Create the main app router
 export const appRouter = router({
@@ -14,6 +15,7 @@ export const appRouter = router({
   goals: goalsRouter,
   workouts: workoutsRouter,
   exercises: exercisesRouter,
+  videos: videosRouter,
 });
 
 // Export the router type for client use
