@@ -22,6 +22,7 @@ interface GoalCardProps {
   };
   onEdit: () => void;
   onDelete: () => void;
+  onUpdateProgress: () => void;
   isDeleting?: boolean;
 }
 
@@ -43,7 +44,7 @@ const goalTypeLabels = {
   strength: "Strength",
 };
 
-export function GoalCard({ goal, onEdit, onDelete, isDeleting }: GoalCardProps) {
+export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, isDeleting }: GoalCardProps) {
   const progress = Math.min((goal.currentValue / goal.targetValue) * 100, 100);
   const isCompleted = goal.currentValue >= goal.targetValue;
   const daysRemaining = Math.ceil((goal.targetDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -168,10 +169,7 @@ export function GoalCard({ goal, onEdit, onDelete, isDeleting }: GoalCardProps) 
             variant="outline"
             size="sm"
             className="w-full"
-            onClick={() => {
-              // Navigate to update progress or start workout
-              console.log("Update progress for goal:", goal.id);
-            }}
+            onClick={onUpdateProgress}
           >
             <TrendingUp className="w-4 h-4 mr-2" />
             Update Progress

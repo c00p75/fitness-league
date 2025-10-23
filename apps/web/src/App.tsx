@@ -11,6 +11,7 @@ import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { GoalsPage } from "./pages/goals/GoalsPage";
 import { WorkoutsPage } from "./pages/workouts/WorkoutsPage";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import { Toaster } from "react-hot-toast";
 
 function App() {
   const { loading } = useAuth();
@@ -24,78 +25,102 @@ function App() {
   }
 
   return (
-    <Routes>
-      {/* Public routes */}
-      <Route
-        path="/login"
-        element={
-          <AuthLayout>
-            <LoginPage />
-          </AuthLayout>
-        }
-      />
-      <Route
-        path="/signup"
-        element={
-          <AuthLayout>
-            <SignupPage />
-          </AuthLayout>
-        }
-      />
+    <>
+      <Routes>
+        {/* Public routes */}
+        <Route
+          path="/login"
+          element={
+            <AuthLayout>
+              <LoginPage />
+            </AuthLayout>
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            <AuthLayout>
+              <SignupPage />
+            </AuthLayout>
+          }
+        />
 
-      {/* Protected routes */}
-      <Route
-        path="/onboarding"
-        element={
-          <ProtectedRoute>
-            <OnboardingPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <ProfilePage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/goals"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <GoalsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/workouts"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <WorkoutsPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <AppLayout>
-              <DashboardPage />
-            </AppLayout>
-          </ProtectedRoute>
-        }
-      />
+        {/* Protected routes */}
+        <Route
+          path="/onboarding"
+          element={
+            <ProtectedRoute>
+              <OnboardingPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <ProfilePage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/goals"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <GoalsPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/workouts"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <WorkoutsPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <AppLayout>
+                <DashboardPage />
+              </AppLayout>
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Redirect unknown routes */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Redirect unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            style: {
+              background: '#10b981',
+            },
+          },
+          error: {
+            duration: 4000,
+            style: {
+              background: '#ef4444',
+            },
+          },
+        }}
+      />
+    </>
   );
 }
 

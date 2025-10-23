@@ -5,6 +5,7 @@ import { Button } from "@fitness-league/ui";
 import { Plus, Target, TrendingUp, Calendar } from "lucide-react";
 import { CreateGoalModal } from "../../components/goals/CreateGoalModal";
 import { EditGoalModal } from "../../components/goals/EditGoalModal";
+import { UpdateProgressModal } from "../../components/goals/UpdateProgressModal";
 import { GoalCard } from "../../components/goals/GoalCard";
 
 export function GoalsPage() {
@@ -16,6 +17,13 @@ export function GoalsPage() {
     targetValue: number;
     unit: string;
     targetDate: Date;
+  } | null>(null);
+  const [updatingProgressGoal, setUpdatingProgressGoal] = useState<{
+    id: string;
+    type: string;
+    currentValue: number;
+    targetValue: number;
+    unit: string;
   } | null>(null);
 
   // Fetch user goals
@@ -35,7 +43,7 @@ export function GoalsPage() {
   };
 
   const handleEditGoal = (goalId: string) => {
-    const goal = goals.find((g: any) => g.id === goalId);
+    const goal = goals.find((g: any) => g.id === goalId) as any;
     if (goal) {
       setEditingGoal({
         id: goal.id,
@@ -43,6 +51,19 @@ export function GoalsPage() {
         targetValue: goal.targetValue || 0,
         unit: goal.unit || "",
         targetDate: goal.targetDate?.toDate ? goal.targetDate.toDate() : new Date(goal.targetDate),
+      });
+    }
+  };
+
+  const handleUpdateProgress = (goalId: string) => {
+    const goal = goals.find((g: any) => g.id === goalId) as any;
+    if (goal) {
+      setUpdatingProgressGoal({
+        id: goal.id,
+        type: goal.type || "general_fitness",
+        currentValue: goal.currentValue || 0,
+        targetValue: goal.targetValue || 0,
+        unit: goal.unit || "",
       });
     }
   };
@@ -127,6 +148,7 @@ export function GoalsPage() {
                 }}
                 onEdit={() => handleEditGoal(goal.id)}
                 onDelete={() => handleDeleteGoal(goal.id)}
+                onUpdateProgress={() => handleUpdateProgress(goal.id)}
                 isDeleting={deleteGoalMutation.isPending}
               />
             ))}
@@ -136,7 +158,7 @@ export function GoalsPage() {
         {/* Quick Stats */}
         {goals.length > 0 && (
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-fitness-primary/10 rounded-lg flex items-center justify-center mr-3">
                   <Target className="w-5 h-5 text-fitness-primary" />
@@ -151,7 +173,7 @@ export function GoalsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                   <TrendingUp className="w-5 h-5 text-green-600" />
@@ -166,7 +188,7 @@ export function GoalsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                   <Calendar className="w-5 h-5 text-blue-600" />
@@ -200,6 +222,15 @@ export function GoalsPage() {
             isOpen={!!editingGoal}
             onClose={() => setEditingGoal(null)}
             goal={editingGoal}
+          />
+        )}
+
+        {/* Update Progress Modal */}
+        {updatingProgressGoal && (
+          <UpdateProgressModal
+            isOpen={!!updatingProgressGoal}
+            onClose={() => setUpdatingProgressGoal(null)}
+            goal={updatingProgressGoal}
           />
         )}
       </div>
