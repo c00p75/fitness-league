@@ -39,6 +39,20 @@ async function getUserProfile(ctx: any) {
   return profileDoc.data();
 }
 
+// Helper function to get onboarding data
+async function getOnboardingData(ctx: any) {
+  const onboardingDoc = await ctx.db
+    .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/onboarding`)
+    .doc("data")
+    .get();
+  
+  if (!onboardingDoc.exists) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Onboarding data not found" });
+  }
+  
+  return onboardingDoc.data();
+}
+
 // Helper function to get goal
 async function getGoal(ctx: any, goalId: string) {
   const goalDoc = await ctx.db
@@ -123,12 +137,12 @@ export const workoutsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      // Fetch user profile and goal
-      const profile = await getUserProfile(ctx);
+      // Fetch onboarding data and goal
+      const onboardingData = await getOnboardingData(ctx);
       const goal = await getGoal(ctx, input.goalId);
       
       // Generate plan based on goal, experience level, and preferences
-      const exercises = await getRecommendedExercises(goal.type, profile.experienceLevel, ctx);
+      const exercises = await getRecommendedExercises(goal.type, onboardingData.experienceLevel, ctx);
       const plan = createWorkoutPlan(input, exercises);
       
       // Save to Firestore

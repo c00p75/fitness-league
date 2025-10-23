@@ -147,7 +147,7 @@ export function WorkoutsPage() {
         {/* Quick Stats */}
         {plans.length > 0 && (
           <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-fitness-primary/10 rounded-lg flex items-center justify-center mr-3">
                   <Dumbbell className="w-5 h-5 text-fitness-primary" />
@@ -162,7 +162,7 @@ export function WorkoutsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
                   <Play className="w-5 h-5 text-green-600" />
@@ -177,7 +177,7 @@ export function WorkoutsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
                   <Clock className="w-5 h-5 text-blue-600" />
@@ -198,7 +198,7 @@ export function WorkoutsPage() {
               </div>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-sm">
+            <div className="bg-card rounded-lg p-6 shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
                   <TrendingUp className="w-5 h-5 text-purple-600" />

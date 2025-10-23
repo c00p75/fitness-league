@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@fitness-league/ui";
 import { OnboardingInputSchema, type OnboardingInput } from "@fitness-league/shared";
+import { trpc } from "../../lib/trpc";
 import { StepIndicator } from "../../components/onboarding/StepIndicator";
 import { GoalSelection } from "../../components/onboarding/GoalSelection";
 import { ExperienceLevelSelection } from "../../components/onboarding/ExperienceLevelSelection";
@@ -24,6 +26,7 @@ export function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -53,6 +56,16 @@ export function OnboardingPage() {
 
   const watchedValues = watch();
 
+  const submitOnboardingMutation = trpc.onboarding.submitOnboarding.useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [["onboarding"]] });
+      navigate("/");
+    },
+    onError: (error) => {
+      setError(error.message || "Failed to save your preferences. Please try again.");
+    },
+  });
+
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -70,16 +83,15 @@ export function OnboardingPage() {
     setError(null);
 
     try {
-      // TODO: Call tRPC mutation to save onboarding data
-      console.log("Onboarding data:", data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      navigate("/");
+      await submitOnboardingMutation.mutateAsync({
+        experienceLevel: data.experienceLevel,
+        fitnessGoals: [data.fitnessGoal], // Convert single goal to array
+        availableTime: data.workoutPreferences.preferredDuration,
+        biometrics: data.biometrics,
+      });
     } catch (error) {
       console.error("Onboarding error:", error);
-      setError("Failed to save your preferences. Please try again.");
+      // Error already handled by onError callback
     } finally {
       setLoading(false);
     }

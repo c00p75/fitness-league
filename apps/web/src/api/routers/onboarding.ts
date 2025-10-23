@@ -52,12 +52,12 @@ export const onboardingRouter = router({
           createdAt: new Date(),
         });
 
-        // Update user profile with biometrics
+        // Update user profile with biometrics (use set with merge to handle new/existing docs)
         const userRef = ctx.db.collection(`artifacts/fit-league-930c6/users/${ctx.auth.uid}/profile`);
-        await userRef.doc("main").update({
+        await userRef.doc("main").set({
           biometrics: input.biometrics,
           updatedAt: new Date(),
-        });
+        }, { merge: true });
 
         return {
           success: true,
