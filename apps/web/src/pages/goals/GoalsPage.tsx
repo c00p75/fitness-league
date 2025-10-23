@@ -7,6 +7,8 @@ import { CreateGoalModal } from "../../components/goals/CreateGoalModal";
 import { EditGoalModal } from "../../components/goals/EditGoalModal";
 import { UpdateProgressModal } from "../../components/goals/UpdateProgressModal";
 import { GoalCard } from "../../components/goals/GoalCard";
+import { GoalDetailView } from "../../components/goals/GoalDetailView";
+import { WorkoutView } from "../../components/goals/WorkoutView";
 
 export function GoalsPage() {
   const queryClient = useQueryClient();
@@ -25,6 +27,10 @@ export function GoalsPage() {
     targetValue: number;
     unit: string;
   } | null>(null);
+  
+  // New state for goal-centric navigation
+  const [selectedGoal, setSelectedGoal] = useState<any | null>(null);
+  const [selectedWorkout, setSelectedWorkout] = useState<any | null>(null);
 
   // Fetch user goals
   const { data: goals = [], isLoading } = trpc.goals.getGoals.useQuery(undefined);
@@ -68,6 +74,33 @@ export function GoalsPage() {
     }
   };
 
+  // New handlers for goal-centric navigation
+  const handleViewGoal = (goalId: string) => {
+    const goal = goals.find((g: any) => g.id === goalId) as any;
+    if (goal) {
+      setSelectedGoal(goal);
+    }
+  };
+
+  const handleStartWorkout = (workout: any) => {
+    setSelectedWorkout(workout);
+  };
+
+  const handleBackToGoal = () => {
+    setSelectedWorkout(null);
+  };
+
+  const handleBackToGoals = () => {
+    setSelectedGoal(null);
+    setSelectedWorkout(null);
+  };
+
+  const handleCompleteWorkout = () => {
+    setSelectedWorkout(null);
+    // Refresh goals to show updated progress
+    queryClient.invalidateQueries({ queryKey: [["goals"]] });
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-fitness-background p-6">
@@ -89,6 +122,38 @@ export function GoalsPage() {
     );
   }
 
+  // Show workout view if a workout is selected
+  if (selectedWorkout && selectedGoal) {
+    return (
+      <div className="min-h-screen bg-fitness-background p-6">
+        <div className="max-w-6xl mx-auto">
+          <WorkoutView
+            workout={selectedWorkout}
+            goal={selectedGoal}
+            onBack={handleBackToGoal}
+            onComplete={handleCompleteWorkout}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show goal detail view if a goal is selected
+  if (selectedGoal) {
+    return (
+      <div className="min-h-screen bg-fitness-background p-6">
+        <div className="max-w-6xl mx-auto">
+          <GoalDetailView
+            goal={selectedGoal}
+            onBack={handleBackToGoals}
+            onStartWorkout={handleStartWorkout}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show goals list (default view)
   return (
     <div className="min-h-screen bg-fitness-background p-6">
       <div className="max-w-6xl mx-auto">
@@ -149,6 +214,7 @@ export function GoalsPage() {
                 onEdit={() => handleEditGoal(goal.id)}
                 onDelete={() => handleDeleteGoal(goal.id)}
                 onUpdateProgress={() => handleUpdateProgress(goal.id)}
+                onViewDetails={() => handleViewGoal(goal.id)}
                 isDeleting={deleteGoalMutation.isPending}
               />
             ))}
