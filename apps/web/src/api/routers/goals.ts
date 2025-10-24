@@ -22,19 +22,27 @@ export const goalsRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const goalsSnapshot = await ctx.db
-        .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/goals`)
-        .orderBy("createdAt", "desc")
-        .get();
+      try {
+        const goalsSnapshot = await ctx.db
+          .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/goals`)
+          .orderBy("createdAt", "desc")
+          .get();
 
-      return goalsSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate(),
-        updatedAt: doc.data().updatedAt?.toDate(),
-        startDate: doc.data().startDate?.toDate(),
-        targetDate: doc.data().targetDate?.toDate(),
-      }));
+        return goalsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          createdAt: doc.data().createdAt?.toDate(),
+          updatedAt: doc.data().updatedAt?.toDate(),
+          startDate: doc.data().startDate?.toDate(),
+          targetDate: doc.data().targetDate?.toDate(),
+        }));
+      } catch (error) {
+        console.error("Error fetching goals:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch goals",
+        });
+      }
     }),
 
   // Create new goal

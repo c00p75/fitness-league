@@ -20,7 +20,8 @@ const OnboardingInputSchema = z.object({
 const OnboardingStatusSchema = z.object({
   isCompleted: z.boolean(),
   completedAt: z.coerce.date().optional(),
-  currentStep: z.number().min(1).max(3),
+  currentStep: z.union([z.number().min(1).max(3), z.string()]).optional(),
+  completedSteps: z.array(z.string()).optional(),
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
 });
 

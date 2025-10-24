@@ -74,19 +74,41 @@ async function getGoal(ctx: any, goalId: string) {
 }
 
 // Helper function to get recommended exercises
-async function getRecommendedExercises(goalType: string, experienceLevel: string, ctx: any) {
+async function getRecommendedExercises(goalType: string, experienceLevel: string, ctx: any, input?: any) {
   // Get exercises from the public collection
   const exercisesSnapshot = await ctx.db
     .collection(`artifacts/${PROJECT_ID}/public/data/exercises`)
     .get();
   
-  const allExercises = exercisesSnapshot.docs.map((doc: any) => ({ id: doc.id, ...doc.data() as any }));
+  const allExercises = exercisesSnapshot.docs.map((doc: any) => ({ 
+    id: doc.id, 
+    ...doc.data() as any 
+  }));
   
-  // Simple algorithm to recommend exercises based on goal and experience
+  // Filter exercises based on goal, experience level, and preferences
   let recommendedExercises = allExercises.filter((exercise: any) => {
     // Filter by experience level
-    if (exercise.difficulty !== experienceLevel && exercise.difficulty !== "beginner") {
+    if (exercise.difficulty === "advanced" && experienceLevel === "beginner") {
       return false;
+    }
+    
+    // Filter by equipment if specified
+    if (input?.equipment && input.equipment.length > 0) {
+      const hasMatchingEquipment = exercise.equipment?.some((eq: string) => 
+        input.equipment.includes(eq)
+      );
+      if (!hasMatchingEquipment) return false;
+    }
+    
+    // Filter by focus areas if specified
+    if (input?.focusAreas && input.focusAreas.length > 0) {
+      const hasMatchingMuscleGroup = exercise.muscleGroups?.some((mg: string) => 
+        input.focusAreas.some((fa: string) => 
+          mg.toLowerCase().includes(fa.toLowerCase()) || 
+          fa.toLowerCase().includes(mg.toLowerCase())
+        )
+      );
+      if (!hasMatchingMuscleGroup) return false;
     }
     
     // Filter by goal type
@@ -94,14 +116,24 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
       case "weight_loss":
         return ["cardio", "hiit"].includes(exercise.category);
       case "muscle_gain":
+      case "strength_gain":
         return ["strength"].includes(exercise.category);
       case "flexibility":
-        return ["yoga", "mobility"].includes(exercise.category);
+        return ["yoga", "pilates", "mobility"].includes(exercise.category);
+      case "endurance_improvement":
+        return ["cardio", "hiit"].includes(exercise.category);
       case "general_fitness":
         return true;
       default:
         return true;
     }
+  });
+  
+  // Prioritize exercises with YouTube videos
+  recommendedExercises.sort((a: any, b: any) => {
+    if (a.youtubeVideoId && !b.youtubeVideoId) return -1;
+    if (!a.youtubeVideoId && b.youtubeVideoId) return 1;
+    return 0;
   });
   
   // Return top 6-8 exercises
@@ -115,6 +147,15 @@ function createWorkoutPlan(input: any, exercises: any[]) {
   
   const planExercises = exercises.map(exercise => ({
     exerciseId: exercise.id,
+    name: exercise.name,
+    category: exercise.category,
+    description: exercise.description,
+    difficulty: exercise.difficulty,
+    instructions: exercise.instructions,
+    youtubeVideoId: exercise.youtubeVideoId,
+    videoThumbnail: exercise.videoThumbnail,
+    videoDuration: exercise.videoDuration,
+    muscleGroups: exercise.muscleGroups,
     sets: exercise.category === "cardio" ? 1 : 3,
     reps: exercise.category === "strength" ? 12 : undefined,
     duration: exercise.category === "cardio" ? 30 : undefined,
@@ -147,7 +188,12 @@ export const workoutsRouter = router({
       const goal = await getGoal(ctx, input.goalId);
       
       // Generate plan based on goal, experience level, and preferences
-      const exercises = await getRecommendedExercises(goal.type, onboardingData.experienceLevel, ctx);
+      const exercises = await getRecommendedExercises(
+        goal.type, 
+        onboardingData.experienceLevel, 
+        ctx,
+        input // Pass the full input with equipment, focusAreas, etc.
+      );
       const plan = createWorkoutPlan(input, exercises);
       
       // Save to Firestore

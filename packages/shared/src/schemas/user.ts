@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FitnessGoalSchema, ExperienceLevelSchema, WorkoutPreferencesSchema } from "./onboarding";
 
 export const BiometricsSchema = z.object({
   age: z.number().min(13, "Must be at least 13 years old").max(120, "Invalid age"),
@@ -20,6 +21,9 @@ export const UserProfileSchema = z.object({
 export const UpdateProfileSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(50, "Display name too long").optional(),
   biometrics: BiometricsSchema.partial().optional(),
+  fitnessGoal: FitnessGoalSchema.optional(),
+  experienceLevel: ExperienceLevelSchema.optional(),
+  workoutPreferences: WorkoutPreferencesSchema.partial().optional(),
 });
 
 export type Biometrics = z.infer<typeof BiometricsSchema>;

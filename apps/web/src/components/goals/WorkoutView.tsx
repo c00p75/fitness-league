@@ -21,6 +21,20 @@ export function WorkoutView({ workout, goal, onBack, onComplete }: WorkoutViewPr
   const currentExercise = exercises[currentExerciseIndex];
   const progressPercentage = (completedExercises.size / exercises.length) * 100;
 
+  // If exercise doesn't have full data, show a helpful message
+  if (currentExercise && !currentExercise.name) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-fitness-text-secondary">
+          Exercise data is incomplete. Please regenerate your workout plan.
+        </p>
+        <Button onClick={onBack} className="mt-4">
+          Back to Goal
+        </Button>
+      </div>
+    );
+  }
+
   const markExerciseComplete = (exerciseIndex: number) => {
     const newCompleted = new Set(completedExercises);
     newCompleted.add(exerciseIndex);
