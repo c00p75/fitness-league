@@ -8,6 +8,12 @@ const CreateWorkoutPlanSchema = z.object({
   durationWeeks: z.number().min(1).max(52),
   workoutsPerWeek: z.number().min(1).max(7),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  duration: z.number().min(15).max(90).optional(),
+  equipment: z.array(z.string()).optional(),
+  timePreference: z.enum(["morning", "afternoon", "evening", "night"]).optional(),
+  intensity: z.enum(["low", "moderate", "high", "variable"]).optional(),
+  focusAreas: z.array(z.string()).optional(),
+  customPlanName: z.string().max(50).optional(),
 });
 
 const UpdateWorkoutSessionSchema = z.object({
@@ -104,9 +110,8 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
 
 // Helper function to create workout plan
 function createWorkoutPlan(input: any, exercises: any[]) {
-  const planName = input.durationWeeks === 4 ? "4-Week Plan" : 
-                 input.durationWeeks === 8 ? "8-Week Plan" : 
-                 "12-Week Plan";
+  // Use custom name if provided, otherwise generate smart default
+  const planName = input.customPlanName || `${input.durationWeeks}-Week Plan`;
   
   const planExercises = exercises.map(exercise => ({
     exerciseId: exercise.id,

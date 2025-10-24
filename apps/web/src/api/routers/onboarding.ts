@@ -21,6 +21,7 @@ const OnboardingStatusSchema = z.object({
   isCompleted: z.boolean(),
   completedAt: z.coerce.date().optional(),
   currentStep: z.number().min(1).max(3),
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
 });
 
 export const onboardingRouter = router({
@@ -89,6 +90,7 @@ export const onboardingRouter = router({
           isCompleted: false,
           completedSteps: [],
           currentStep: "goal_selection",
+          experienceLevel: "beginner",
         };
       }
 
@@ -97,6 +99,7 @@ export const onboardingRouter = router({
         isCompleted: onboardingData?.isCompleted || false,
         completedSteps: onboardingData?.completedSteps || [],
         currentStep: onboardingData?.currentStep || "goal_selection",
+        experienceLevel: onboardingData?.experienceLevel || "beginner",
       });
     } catch (error) {
       throw new TRPCError({
