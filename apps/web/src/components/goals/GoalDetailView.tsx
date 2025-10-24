@@ -202,7 +202,8 @@ export function GoalDetailView({ goal, onBack, onStartWorkout }: GoalDetailViewP
         <PlanGenerator
           isOpen={showCreatePlan}
           onClose={() => setShowCreatePlan(false)}
-          goals={[goal]}
+          goals={[{ ...goal, durationWeeks: goal.durationWeeks }]}
+          preSelectedGoalId={goal.id}
         />
       )}
     </div>

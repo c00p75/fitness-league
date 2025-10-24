@@ -14,14 +14,11 @@ interface PlanGeneratorProps {
     type: string;
     targetValue: number;
     unit: string;
+    durationWeeks?: number;
   }>;
+  preSelectedGoalId?: string;
 }
 
-const durationOptions = [
-  { value: 4, label: "4 weeks", description: "Quick start program" },
-  { value: 8, label: "8 weeks", description: "Balanced program" },
-  { value: 12, label: "12 weeks", description: "Comprehensive program" },
-];
 
 const frequencyOptions = [
   { value: 2, label: "2x per week", description: "Light activity" },
@@ -30,32 +27,38 @@ const frequencyOptions = [
   { value: 5, label: "5x per week", description: "High intensity" },
 ];
 
-export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
+export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: PlanGeneratorProps) {
   const queryClient = useQueryClient();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    goalId: "",
-    durationWeeks: 4,
+    goalId: preSelectedGoalId || "",
     workoutsPerWeek: 3,
     difficulty: "beginner",
   });
+
+  // Determine if we need goal selection step
+  const needsGoalSelection = !preSelectedGoalId && goals.length > 1;
+  const totalSteps = needsGoalSelection ? 2 : 1;
 
   const generatePlanMutation = trpc.workouts.generatePlan.useMutation({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [["workouts", "getPlans"]] });
       onClose();
       setStep(1);
-      setFormData({ goalId: "", durationWeeks: 4, workoutsPerWeek: 3, difficulty: "beginner" });
+      setFormData({ goalId: preSelectedGoalId || "", workoutsPerWeek: 3, difficulty: "beginner" });
     },
   });
 
   const handleSubmit = async () => {
     if (!formData.goalId) return;
     
+    const selectedGoal = goals.find(g => g.id === formData.goalId);
+    if (!selectedGoal) return;
+    
     await generatePlanMutation.mutateAsync({
-      name: `Workout Plan for ${formData.goalId}`,
+      name: `Workout Plan for ${selectedGoal.type}`,
       goalId: formData.goalId,
-      durationWeeks: formData.durationWeeks,
+      durationWeeks: selectedGoal.durationWeeks || 8,
       workoutsPerWeek: formData.workoutsPerWeek,
       difficulty: formData.difficulty as "beginner" | "intermediate" | "advanced",
     });
@@ -97,8 +100,8 @@ export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
 
           {/* Progress Indicator */}
           <div className="flex items-center justify-center mb-8">
-            {[1, 2, 3].map((stepNumber) => (
-              <div key={stepNumber}>
+            {Array.from({ length: totalSteps }, (_, i) => i + 1).map((stepNumber) => (
+              <div key={stepNumber} className="flex items-center">
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                     step >= stepNumber
@@ -108,7 +111,7 @@ export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
                 >
                   {step > stepNumber ? <CheckCircle className="w-4 h-4" /> : stepNumber}
                 </div>
-                {stepNumber < 3 && (
+                {stepNumber < totalSteps && (
                   <div
                     className={`w-12 h-1 mx-2 ${
                       step > stepNumber ? "bg-fitness-primary" : "bg-gray-200"
@@ -119,8 +122,8 @@ export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
             ))}
           </div>
 
-          {/* Step 1: Select Goal */}
-          {step === 1 && (
+          {/* Step 1: Goal Selection (only if needed) */}
+          {step === 1 && needsGoalSelection && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-fitness-foreground mb-2">
@@ -160,90 +163,47 @@ export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
             </div>
           )}
 
-          {/* Step 2: Duration & Frequency */}
-          {step === 2 && (
+          {/* Final Step: Frequency & Review */}
+          {step === (needsGoalSelection ? 2 : 1) && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-fitness-foreground mb-2">
-                  Plan Duration & Frequency
+                  Workout Frequency
                 </h3>
                 <p className="text-fitness-muted-foreground mb-4">
-                  How long do you want to commit to this plan?
+                  How many times per week can you commit to working out?
                 </p>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <Label className="text-sm font-medium text-fitness-foreground mb-3 block">
-                    Program Duration
-                  </Label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {durationOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, durationWeeks: option.value }))}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                          formData.durationWeeks === option.value
-                            ? "border-fitness-primary bg-fitness-primary/5"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <div className="flex items-center mb-1">
-                          <Calendar className="w-4 h-4 mr-2 text-fitness-primary" />
-                          <span className="font-medium">{option.label}</span>
-                        </div>
-                        <p className="text-xs text-fitness-muted-foreground">
-                          {option.description}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="text-sm font-medium text-fitness-foreground mb-3 block">
-                    Workouts Per Week
-                  </Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {frequencyOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, workoutsPerWeek: option.value }))}
-                        className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                          formData.workoutsPerWeek === option.value
-                            ? "border-fitness-primary bg-fitness-primary/5"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <div className="flex items-center mb-1">
-                          <Users className="w-4 h-4 mr-2 text-fitness-primary" />
-                          <span className="font-medium">{option.label}</span>
-                        </div>
-                        <p className="text-xs text-fitness-muted-foreground">
-                          {option.description}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Review & Generate */}
-          {step === 3 && (
-            <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-fitness-foreground mb-2">
-                  Review Your Plan
-                </h3>
-                <p className="text-fitness-muted-foreground mb-4">
-                  Here's what we'll create for you:
-                </p>
+                <Label className="text-sm font-medium text-fitness-foreground mb-3 block">
+                  Workouts Per Week
+                </Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {frequencyOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, workoutsPerWeek: option.value }))}
+                      className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                        formData.workoutsPerWeek === option.value
+                          ? "border-fitness-primary bg-fitness-primary/5"
+                          : "border-gray-200 hover:border-gray-300"
+                      }`}
+                    >
+                      <div className="flex items-center mb-1">
+                        <Users className="w-4 h-4 mr-2 text-fitness-primary" />
+                        <span className="font-medium">{option.label}</span>
+                      </div>
+                      <p className="text-xs text-fitness-muted-foreground">
+                        {option.description}
+                      </p>
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {/* Review Summary */}
               <div className="bg-fitness-primary/5 rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-fitness-muted-foreground">Goal:</span>
@@ -254,19 +214,13 @@ export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
                 <div className="flex items-center justify-between">
                   <span className="text-fitness-muted-foreground">Duration:</span>
                   <span className="font-medium text-fitness-foreground">
-                    {formData.durationWeeks} weeks
+                    {goals.find(g => g.id === formData.goalId)?.durationWeeks || 8} weeks
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-fitness-muted-foreground">Frequency:</span>
                   <span className="font-medium text-fitness-foreground">
                     {formData.workoutsPerWeek} workouts per week
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-fitness-muted-foreground">Difficulty:</span>
-                  <span className="font-medium text-fitness-foreground">
-                    {formData.difficulty.charAt(0).toUpperCase() + formData.difficulty.slice(1)}
                   </span>
                 </div>
               </div>
@@ -301,10 +255,10 @@ export function PlanGenerator({ isOpen, onClose, goals }: PlanGeneratorProps) {
               )}
             </Button>
 
-            {step < 3 ? (
+            {step < totalSteps ? (
               <Button
                 onClick={nextStep}
-                disabled={step === 1 && !formData.goalId}
+                disabled={step === 1 && needsGoalSelection && !formData.goalId}
                 className="flex items-center bg-fitness-primary hover:bg-fitness-primary/90"
               >
                 Next

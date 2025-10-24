@@ -242,6 +242,7 @@ export function WorkoutsPage() {
             type: goal.type || "general_fitness",
             targetValue: goal.targetValue || 0,
             unit: goal.unit || "",
+            durationWeeks: goal.durationWeeks || 8,
           }))}
         />
       </div>
