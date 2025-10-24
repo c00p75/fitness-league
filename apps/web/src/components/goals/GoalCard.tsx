@@ -7,7 +7,7 @@ import {
   Trash2, 
   CheckCircle,
   Clock,
-  Eye
+  Play
 } from "lucide-react";
 
 interface GoalCardProps {
@@ -24,7 +24,7 @@ interface GoalCardProps {
   onEdit: () => void;
   onDelete: () => void;
   onUpdateProgress: () => void;
-  onViewDetails: () => void;
+  onStartWorkout: () => void;
   isDeleting?: boolean;
 }
 
@@ -46,7 +46,7 @@ const goalTypeLabels = {
   strength: "Strength",
 };
 
-export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onViewDetails, isDeleting }: GoalCardProps) {
+export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onStartWorkout, isDeleting }: GoalCardProps) {
   const progress = Math.min((goal.currentValue / goal.targetValue) * 100, 100);
   const isCompleted = goal.currentValue >= goal.targetValue;
   const daysRemaining = Math.ceil((goal.targetDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -166,15 +166,26 @@ export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onViewDetai
 
       {/* Action Buttons */}
       <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full"
-          onClick={onViewDetails}
-        >
-          <Eye className="w-4 h-4 mr-2" />
-          View Details
-        </Button>
+        {!isCompleted && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={onStartWorkout}
+          >
+            {goal.currentValue === 0 ? (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                Start Workout
+              </>
+            ) : (
+              <>
+                <Play className="w-4 h-4 mr-2" />
+                Continue Workout
+              </>
+            )}
+          </Button>
+        )}
         {!isCompleted && (
           <Button
             variant="outline"

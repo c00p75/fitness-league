@@ -9,6 +9,7 @@ const CreateGoalSchema = z.object({
   unit: z.string().min(1, "Unit is required"),
   targetDate: z.coerce.date(),
   startDate: z.coerce.date().optional(),
+  durationWeeks: z.number().min(1).max(52).optional(),
 });
 
 const PROJECT_ID = "fit-league-930c6";

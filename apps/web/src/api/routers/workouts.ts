@@ -162,15 +162,24 @@ export const workoutsRouter = router({
 
   // Get user's workout plans
   getPlans: protectedProcedure
-    .query(async ({ ctx }) => {
+    .input(z.object({ 
+      goalId: z.string().optional() 
+    }).optional())
+    .query(async ({ ctx, input }) => {
       if (!ctx.auth?.uid) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const plansSnapshot = await ctx.db
+      let query = ctx.db
         .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/workoutPlans`)
-        .orderBy('createdAt', 'desc')
-        .get();
+        .orderBy('createdAt', 'desc');
+
+      // Filter by goalId if provided
+      if (input?.goalId) {
+        query = query.where('goalId', '==', input.goalId);
+      }
+
+      const plansSnapshot = await query.get();
 
       return plansSnapshot.docs.map(doc => ({
         id: doc.id,

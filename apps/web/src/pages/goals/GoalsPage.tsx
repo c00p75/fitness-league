@@ -214,7 +214,7 @@ export function GoalsPage() {
                 onEdit={() => handleEditGoal(goal.id)}
                 onDelete={() => handleDeleteGoal(goal.id)}
                 onUpdateProgress={() => handleUpdateProgress(goal.id)}
-                onViewDetails={() => handleViewGoal(goal.id)}
+                onStartWorkout={() => handleViewGoal(goal.id)}
                 isDeleting={deleteGoalMutation.isPending}
               />
             ))}
