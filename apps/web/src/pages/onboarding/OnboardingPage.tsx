@@ -14,9 +14,9 @@ import { WorkoutPreferencesForm } from "../../components/onboarding/WorkoutPrefe
 import { OnboardingComplete } from "../../components/onboarding/OnboardingComplete";
 
 const steps = [
+  { id: "biometrics", title: "About You", description: "Tell us about yourself" },
   { id: "goal", title: "Fitness Goal", description: "What's your main fitness goal?" },
   { id: "level", title: "Experience", description: "What's your fitness level?" },
-  { id: "biometrics", title: "About You", description: "Tell us about yourself" },
   { id: "preferences", title: "Preferences", description: "Your workout preferences" },
   { id: "complete", title: "Complete", description: "You're all set!" },
 ];
@@ -43,7 +43,7 @@ export function OnboardingPage() {
         age: 25,
         height: 170,
         weight: 70,
-        gender: "other",
+        gender: "male",
       },
       workoutPreferences: {
         preferredDuration: 30,
@@ -101,25 +101,29 @@ export function OnboardingPage() {
     switch (currentStep) {
       case 0:
         return (
+          <BiometricsForm
+            register={register}
+            errors={errors.biometrics}
+            setValue={setValue}
+            watch={watch}
+          />
+        );
+      case 1:
+        return (
           <GoalSelection
             value={watchedValues.fitnessGoal}
             onChange={(goal) => setValue("fitnessGoal", goal)}
             error={errors.fitnessGoal?.message}
+            userGender={watchedValues.biometrics?.gender}
           />
         );
-      case 1:
+      case 2:
         return (
           <ExperienceLevelSelection
             value={watchedValues.experienceLevel}
             onChange={(level) => setValue("experienceLevel", level)}
             error={errors.experienceLevel?.message}
-          />
-        );
-      case 2:
-        return (
-          <BiometricsForm
-            register={register}
-            errors={errors.biometrics}
+            userGender={watchedValues.biometrics?.gender}
           />
         );
       case 3:

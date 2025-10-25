@@ -6,6 +6,7 @@ interface GoalSelectionProps {
   value: FitnessGoal;
   onChange: (goal: FitnessGoal) => void;
   error?: string;
+  userGender?: string;
 }
 
 // Utility function to randomly select gender variant
@@ -71,14 +72,14 @@ const goals = [
   },
 ];
 
-export function GoalSelection({ value, onChange, error }: GoalSelectionProps) {
-  // Generate random gender for each goal individually
+export function GoalSelection({ value, onChange, error, userGender }: GoalSelectionProps) {
+  // Use user's gender selection or fallback to random for each goal
   const goalImages = useMemo(() => {
     return goals.map(goal => ({
       ...goal,
-      imagePath: getGoalImagePath(goal.id, getRandomGender())
+      imagePath: getGoalImagePath(goal.id, userGender || getRandomGender())
     }));
-  }, []);
+  }, [userGender]);
 
   return (
     <div className="space-y-4">
