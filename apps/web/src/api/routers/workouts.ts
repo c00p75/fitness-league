@@ -84,6 +84,14 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
     id: doc.id, 
     ...doc.data() as any 
   }));
+
+  console.log("Exercise filtering debug:", {
+    totalExercises: allExercises.length,
+    goalType,
+    experienceLevel,
+    equipment: input?.equipment,
+    focusAreas: input?.focusAreas
+  });
   
   // Filter exercises based on goal, experience level, and preferences
   let recommendedExercises = allExercises.filter((exercise: any) => {
@@ -92,21 +100,46 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
       return false;
     }
     
-    // Filter by equipment if specified
+    // Improved equipment filtering
     if (input?.equipment && input.equipment.length > 0) {
-      const hasMatchingEquipment = exercise.equipment?.some((eq: string) => 
-        input.equipment.includes(eq)
-      );
-      if (!hasMatchingEquipment) return false;
+      // If "none" is selected, include all bodyweight exercises
+      if (input.equipment.includes("none")) {
+        // Include exercises with no equipment or minimal equipment
+        if (!exercise.equipment?.includes("none") && 
+            !exercise.equipment?.some(eq => ["dumbbells", "resistance_bands"].includes(eq))) {
+          return false;
+        }
+      } else {
+        // For other equipment, be more flexible
+        const hasMatchingEquipment = exercise.equipment?.some((eq: string) => 
+          input.equipment.includes(eq)
+        );
+        if (!hasMatchingEquipment) return false;
+      }
     }
     
-    // Filter by focus areas if specified
+    // Improved focus areas matching
     if (input?.focusAreas && input.focusAreas.length > 0) {
+      const focusAreaMapping = {
+        "upper_body": ["chest", "back", "shoulders", "arms", "triceps", "biceps"],
+        "lower_body": ["legs", "quads", "hamstrings", "glutes", "calves"],
+        "core": ["core", "abs", "obliques"],
+        "full_body": ["full_body", "cardiovascular"],
+        "chest": ["chest"],
+        "back": ["back"],
+        "arms": ["arms", "biceps", "triceps"],
+        "legs": ["legs", "quads", "hamstrings", "glutes"],
+        "shoulders": ["shoulders"]
+      };
+
       const hasMatchingMuscleGroup = exercise.muscleGroups?.some((mg: string) => 
-        input.focusAreas.some((fa: string) => 
-          mg.toLowerCase().includes(fa.toLowerCase()) || 
-          fa.toLowerCase().includes(mg.toLowerCase())
-        )
+        input.focusAreas.some((fa: string) => {
+          const mappedGroups = focusAreaMapping[fa] || [fa];
+          return mappedGroups.some(group => 
+            mg.toLowerCase().includes(group.toLowerCase()) || 
+            group.toLowerCase().includes(mg.toLowerCase())
+          );
+        })
       );
       if (!hasMatchingMuscleGroup) return false;
     }
@@ -128,6 +161,39 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
         return true;
     }
   });
+
+  console.log("After filtering:", {
+    filteredCount: recommendedExercises.length,
+    exercises: recommendedExercises.map(e => ({ id: e.id, name: e.name, category: e.category }))
+  });
+  
+  // Add fallback logic if no exercises found
+  if (recommendedExercises.length === 0) {
+    console.warn("No exercises found with current filters, using fallback");
+    
+    // Fallback: return exercises based only on goal type and experience level
+    recommendedExercises = allExercises.filter((exercise: any) => {
+      // Only apply experience level and goal type filters
+      if (exercise.difficulty === "advanced" && experienceLevel === "beginner") {
+        return false;
+      }
+      
+      switch (goalType) {
+        case "weight_loss": return ["cardio", "hiit"].includes(exercise.category);
+        case "muscle_gain": return ["strength"].includes(exercise.category);
+        case "strength_gain": return ["strength"].includes(exercise.category);
+        case "flexibility": return ["yoga", "pilates", "mobility"].includes(exercise.category);
+        case "endurance_improvement": return ["cardio", "hiit"].includes(exercise.category);
+        case "general_fitness": return true;
+        default: return true;
+      }
+    });
+    
+    console.log("Fallback exercises:", {
+      fallbackCount: recommendedExercises.length,
+      exercises: recommendedExercises.map(e => ({ id: e.id, name: e.name, category: e.category }))
+    });
+  }
   
   // Prioritize exercises with YouTube videos
   recommendedExercises.sort((a: any, b: any) => {

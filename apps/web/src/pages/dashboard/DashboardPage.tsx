@@ -12,7 +12,8 @@ export function DashboardPage() {
   const { data: goals = [], isLoading: goalsLoading } = trpc.goals.getGoals.useQuery(undefined);
   
   // Fetch recent workout plans
-  const { data: recentPlans = [] } = trpc.workouts.getPlans.useQuery({ limit: 3 });
+  const { data: allPlans = [] } = trpc.workouts.getPlans.useQuery(undefined);
+  const recentPlans = allPlans.slice(0, 3);
 
   const activeGoals = goals.filter((goal: any) => goal.isActive !== false);
   const completedGoals = goals.filter((goal: any) => (goal.currentValue || 0) >= (goal.targetValue || 0));
