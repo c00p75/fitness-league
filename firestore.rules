@@ -12,7 +12,7 @@ service cloud.firestore {
     }
     
     function isValidUser(userId) {
-      return isAuthenticated() && request.auth.uid == userId && request.auth.token.email_verified == true;
+      return isAuthenticated() && request.auth.uid == userId;
     }
     
     // Public data - read-only for authenticated users

@@ -12,7 +12,7 @@ echo "📦 Building seeding package..."
 pnpm --filter @fitness-league/seeding build
 
 # Check if Firebase emulators are running
-if ! curl -s http://localhost:4000 > /dev/null; then
+if ! curl -s http://localhost:3999 > /dev/null; then
     echo "❌ Firebase emulators are not running. Please start them first:"
     echo "   firebase emulators:start"
     exit 1

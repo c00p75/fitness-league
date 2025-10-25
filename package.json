@@ -6,6 +6,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:full": "cd apps/web && pnpm dev:full",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
@@ -21,10 +22,15 @@
     "seed": "./scripts/seed-emulator.sh",
     "deploy": "pnpm build && firebase deploy"
   },
-
   "packageManager": "pnpm@8.15.1",
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.8"
+  },
+  "dependencies": {
+    "react-hot-toast": "^2.6.0"
   }
 }

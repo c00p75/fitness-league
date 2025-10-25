@@ -1,6 +1,29 @@
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
-import { OnboardingInputSchema, OnboardingStatusSchema } from "@fitness-league/shared";
+import { z } from "zod";
+
+// Define schemas locally to avoid import issues
+const BiometricsSchema = z.object({
+  age: z.number().min(13, "Must be at least 13 years old").max(120, "Invalid age"),
+  height: z.number().min(100, "Height must be at least 100cm").max(250, "Height must be less than 250cm"),
+  weight: z.number().min(30, "Weight must be at least 30kg").max(300, "Weight must be less than 300kg"),
+  gender: z.enum(["male", "female", "other"]),
+});
+
+const OnboardingInputSchema = z.object({
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]),
+  fitnessGoals: z.array(z.string()),
+  availableTime: z.number().min(15).max(180),
+  biometrics: BiometricsSchema,
+});
+
+const OnboardingStatusSchema = z.object({
+  isCompleted: z.boolean(),
+  completedAt: z.coerce.date().optional(),
+  currentStep: z.union([z.number().min(1).max(3), z.string()]).optional(),
+  completedSteps: z.array(z.string()).optional(),
+  experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+});
 
 export const onboardingRouter = router({
   // Submit onboarding data
@@ -31,12 +54,12 @@ export const onboardingRouter = router({
           createdAt: new Date(),
         });
 
-        // Update user profile with biometrics
+        // Update user profile with biometrics (use set with merge to handle new/existing docs)
         const userRef = ctx.db.collection(`artifacts/fit-league-930c6/users/${ctx.auth.uid}/profile`);
-        await userRef.doc("main").update({
+        await userRef.doc("main").set({
           biometrics: input.biometrics,
           updatedAt: new Date(),
-        });
+        }, { merge: true });
 
         return {
           success: true,
@@ -68,6 +91,7 @@ export const onboardingRouter = router({
           isCompleted: false,
           completedSteps: [],
           currentStep: "goal_selection",
+          experienceLevel: "beginner",
         };
       }
 
@@ -76,6 +100,7 @@ export const onboardingRouter = router({
         isCompleted: onboardingData?.isCompleted || false,
         completedSteps: onboardingData?.completedSteps || [],
         currentStep: onboardingData?.currentStep || "goal_selection",
+        experienceLevel: onboardingData?.experienceLevel || "beginner",
       });
     } catch (error) {
       throw new TRPCError({

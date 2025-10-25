@@ -28,7 +28,7 @@ async function seedEmulator() {
   
   // Connect to emulator
   db.settings({
-    host: "localhost:8080",
+    host: "localhost:8079",
     ssl: false,
   });
   
