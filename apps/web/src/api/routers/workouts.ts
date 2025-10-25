@@ -211,22 +211,34 @@ function createWorkoutPlan(input: any, exercises: any[]) {
   // Use custom name if provided, otherwise generate smart default
   const planName = input.customPlanName || `${input.durationWeeks}-Week Plan`;
   
-  const planExercises = exercises.map(exercise => ({
-    exerciseId: exercise.id,
-    name: exercise.name,
-    category: exercise.category,
-    description: exercise.description,
-    difficulty: exercise.difficulty,
-    instructions: exercise.instructions,
-    youtubeVideoId: exercise.youtubeVideoId,
-    videoThumbnail: exercise.videoThumbnail,
-    videoDuration: exercise.videoDuration,
-    muscleGroups: exercise.muscleGroups,
-    sets: exercise.category === "cardio" ? 1 : 3,
-    reps: exercise.category === "strength" ? 12 : undefined,
-    duration: exercise.category === "cardio" ? 30 : undefined,
-    restSeconds: exercise.category === "strength" ? 60 : 30,
-  }));
+  const planExercises = exercises.map(exercise => {
+    const baseExercise = {
+      exerciseId: exercise.id,
+      name: exercise.name,
+      category: exercise.category,
+      description: exercise.description,
+      difficulty: exercise.difficulty,
+      instructions: exercise.instructions,
+      youtubeVideoId: exercise.youtubeVideoId,
+      videoThumbnail: exercise.videoThumbnail,
+      videoDuration: exercise.videoDuration,
+      muscleGroups: exercise.muscleGroups,
+      sets: exercise.category === "cardio" ? 1 : 3,
+      restSeconds: exercise.category === "strength" ? 60 : 30,
+    };
+
+    // Conditionally add reps for strength exercises
+    if (exercise.category === "strength") {
+      return { ...baseExercise, reps: 12 };
+    }
+    
+    // Conditionally add duration for cardio exercises
+    if (exercise.category === "cardio") {
+      return { ...baseExercise, duration: 30 };
+    }
+    
+    return baseExercise;
+  });
   
   return {
     name: planName,
