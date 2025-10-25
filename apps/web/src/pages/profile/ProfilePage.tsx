@@ -4,12 +4,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button, Input, Label, Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from "@fitness-league/ui";
 import { UpdateProfileSchema, type UpdateProfileInput, FitnessGoal, ExperienceLevel } from "@fitness-league/shared";
 import { useAuth } from "../../hooks/useAuth";
-import { AvatarUpload } from "../../components/profile/AvatarUpload";
 import { GoalSelection } from "../../components/onboarding/GoalSelection";
 import { ExperienceLevelSelection } from "../../components/onboarding/ExperienceLevelSelection";
 import { WorkoutPreferencesForm } from "../../components/onboarding/WorkoutPreferencesForm";
 import { trpc } from "../../lib/trpc";
 import toast from "react-hot-toast";
+import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 
 type TabType = "personal" | "goals" | "preferences";
 
@@ -92,10 +92,8 @@ export function ProfilePage() {
 
   if (profileLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-white">Loading profile...</div>
-        </div>
+      <div className="h-[calc(100vh-8rem)] flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
@@ -107,9 +105,9 @@ export function ProfilePage() {
         <p className="text-white/70">Manage your account settings and preferences</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-2xl mx-auto">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6">
           {/* Tab Navigation */}
           <div className="flex space-x-1 bg-fitness-surface-light p-1 rounded-lg">
             <button
@@ -334,43 +332,6 @@ export function ProfilePage() {
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <Card className="fitness-card">
-            <CardHeader>
-              <CardTitle>Profile Picture</CardTitle>
-              <CardDescription>
-                Upload a photo to personalize your profile
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AvatarUpload />
-            </CardContent>
-          </Card>
-
-          <Card className="fitness-card">
-            <CardHeader>
-              <CardTitle>Account Status</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-white/70">Email Verified</span>
-                <Badge variant={user?.emailVerified ? "fitness" : "destructive"}>
-                  {user?.emailVerified ? "Verified" : "Unverified"}
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-white/70">Member Since</span>
-                <span className="text-sm text-white">
-                  {user?.metadata?.creationTime 
-                    ? new Date(user.metadata.creationTime).toLocaleDateString()
-                    : "Unknown"
-                  }
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );

@@ -10,7 +10,6 @@ import { ProfilePage } from "./pages/profile/ProfilePage";
 import { DashboardPage } from "./pages/dashboard/DashboardPage";
 import { GoalsPage } from "./pages/goals/GoalsPage";
 import { GoalDetailPage } from "./pages/goals/GoalDetailPage";
-import { GoalWorkoutsPage } from "./pages/goals/GoalWorkoutsPage";
 import { WorkoutDetailPage } from "./pages/workouts/WorkoutDetailPage";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { Toaster } from "react-hot-toast";
@@ -82,16 +81,6 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <GoalDetailPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/goals/:goalId/workouts"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <GoalWorkoutsPage />
               </AppLayout>
             </ProtectedRoute>
           }

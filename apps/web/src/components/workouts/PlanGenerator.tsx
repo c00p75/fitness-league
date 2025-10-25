@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
@@ -153,6 +154,7 @@ const goalFocusOptions: Record<string, {
 
 export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: PlanGeneratorProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   
   // Fetch user's onboarding data to get default fitness level
@@ -261,7 +263,7 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
   }, [selectedGoal, formData.focusAreas, formData.intensity, formData.useCustomName]);
 
   const generatePlanMutation = trpc.workouts.generatePlan.useMutation({
-    onSuccess: () => {
+    onSuccess: (newPlan) => {
       queryClient.invalidateQueries({ queryKey: [["workouts", "getPlans"]] });
       onClose();
       setStep(1);
@@ -276,6 +278,8 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
         planName: "",
         useCustomName: false,
       });
+      // Redirect to the workout session for the newly created plan
+      navigate(`/goals/${newPlan.goalId}/workouts/${newPlan.id}/session`);
     },
   });
 
@@ -291,8 +295,8 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
       workoutsPerWeek: formData.workoutsPerWeek,
       duration: formData.duration,
       equipment: formData.equipment,
-      timePreference: formData.timePreference,
-      intensity: formData.intensity,
+      timePreference: formData.timePreference as "morning" | "afternoon" | "evening" | "night",
+      intensity: formData.intensity as "low" | "moderate" | "high" | "variable",
       focusAreas: formData.focusAreas,
       customPlanName: formData.planName,
     });

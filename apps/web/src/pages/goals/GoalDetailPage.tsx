@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Progress, Badge } from "@fitness-league/ui";
 import { ArrowLeft, Target, Calendar, TrendingUp, Plus, Play, Eye } from "lucide-react";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { PlanGenerator } from "../../components/workouts/PlanGenerator";
 
 export function GoalDetailPage() {
   const { goalId } = useParams<{ goalId: string }>();
   const navigate = useNavigate();
+  const [showPlanGenerator, setShowPlanGenerator] = useState(false);
 
   // Fetch goal details
   const { data: goal, isLoading: goalLoading } = trpc.goals.getGoal.useQuery(
@@ -19,6 +22,9 @@ export function GoalDetailPage() {
     { goalId: goalId! },
     { enabled: !!goalId }
   );
+
+  // Fetch all goals for the PlanGenerator
+  const { data: goals = [] } = trpc.goals.getGoals.useQuery(undefined);
 
   if (goalLoading) {
     return (
@@ -178,7 +184,7 @@ export function GoalDetailPage() {
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-fitness-foreground">Workout Plans</h2>
           <Button
-            onClick={() => navigate(`/goals/${goalId}/workouts`)}
+            onClick={() => setShowPlanGenerator(true)}
             className="bg-fitness-primary hover:bg-fitness-primary/90"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -203,7 +209,7 @@ export function GoalDetailPage() {
                 Create your first workout plan to start working towards this goal.
               </p>
               <Button
-                onClick={() => navigate(`/goals/${goalId}/workouts`)}
+                onClick={() => navigate(`/goals/${goalId}`)}
                 className="bg-fitness-primary hover:bg-fitness-primary/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -263,6 +269,14 @@ export function GoalDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Plan Generator Modal */}
+      <PlanGenerator
+        isOpen={showPlanGenerator}
+        onClose={() => setShowPlanGenerator(false)}
+        goals={goals}
+        preSelectedGoalId={goalId}
+      />
     </div>
   );
 }

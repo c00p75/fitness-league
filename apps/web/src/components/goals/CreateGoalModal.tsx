@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { trpc } from "../../lib/trpc";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
@@ -92,6 +93,7 @@ const targetValueRecommendations: Record<string, {
 
 export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     type: "",
     targetValue: "",
@@ -103,12 +105,14 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   const [showCustomTimeline, setShowCustomTimeline] = useState(false);
 
   const createGoalMutation = trpc.goals.createGoal.useMutation({
-    onSuccess: () => {
+    onSuccess: (newGoal) => {
       queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
       onClose();
       setFormData({ type: "", targetValue: "", unit: "", targetDate: "", durationWeeks: 8 });
       setShowCustomValue(false);
       setShowCustomTimeline(false);
+      // Redirect to the goal's workouts page
+      navigate(`/goals/${newGoal.id}`);
     },
   });
 

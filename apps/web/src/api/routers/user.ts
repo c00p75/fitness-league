@@ -1,7 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { router, protectedProcedure } from "../trpc";
 import { z } from "zod";
-// import { UpdateProfileSchema, BiometricsSchema } from "@fitness-league/shared";
 
 // Define schemas locally to avoid import issues
 const BiometricsSchema = z.object({
@@ -11,9 +10,44 @@ const BiometricsSchema = z.object({
   gender: z.enum(["male", "female", "other"]),
 });
 
+
+const FitnessGoalSchema = z.enum([
+  "build_strength",
+  "lose_weight", 
+  "gain_muscle",
+  "improve_endurance",
+  "general_fitness",
+  "flexibility",
+  "sport_specific"
+]);
+
+const ExperienceLevelSchema = z.enum([
+  "beginner",
+  "intermediate", 
+  "advanced"
+]);
+
+const WorkoutPreferencesSchema = z.object({
+  preferredDuration: z.number().min(15, "Minimum 15 minutes").max(180, "Maximum 180 minutes"),
+  weeklyFrequency: z.number().min(1, "At least 1 workout per week").max(7, "Maximum 7 workouts per week"),
+  availableEquipment: z.array(z.enum([
+    "none",
+    "dumbbells",
+    "resistance_bands", 
+    "yoga_mat",
+    "pull_up_bar",
+    "kettlebell",
+    "barbell"
+  ])),
+  preferredTimeOfDay: z.enum(["morning", "afternoon", "evening", "flexible"]),
+});
+
 const UpdateProfileSchema = z.object({
   displayName: z.string().min(1, "Display name is required").max(50, "Display name too long").optional(),
   biometrics: BiometricsSchema.partial().optional(),
+  fitnessGoal: FitnessGoalSchema.optional(),
+  experienceLevel: ExperienceLevelSchema.optional(),
+  workoutPreferences: WorkoutPreferencesSchema.partial().optional(),
 });
 
 const UserProfileSchema = z.object({

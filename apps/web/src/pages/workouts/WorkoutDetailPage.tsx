@@ -39,7 +39,7 @@ export function WorkoutDetailPage() {
         <div className="text-center">
           <h2 className="text-2xl font-bold text-fitness-foreground mb-4">Workout Not Found</h2>
           <p className="text-fitness-muted-foreground mb-6">The workout you're looking for doesn't exist.</p>
-          <Button onClick={() => navigate(`/goals/${goalId}/workouts`)}>
+          <Button onClick={() => navigate(`/goals/${goalId}`)}>
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Workouts
           </Button>
@@ -92,7 +92,7 @@ export function WorkoutDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate(`/goals/${goalId}/workouts`)}
+            onClick={() => navigate(`/goals/${goalId}`)}
             className="text-fitness-muted-foreground hover:text-fitness-foreground"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -308,7 +308,7 @@ export function WorkoutDetailPage() {
         </div>
 
               {/* Mark Complete Button */}
-              <Button
+        <Button
                 onClick={() => {
                   const isCompleted = completedExercises.has(selectedExerciseIndex);
                   

@@ -193,7 +193,14 @@ export function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => navigate('/goals')}
+                      onClick={() => {
+                        if (plan.goalId) {
+                          navigate(`/goals/${plan.goalId}/workouts/${plan.id}/session`);
+                        } else {
+                          // Fallback to goals page if goalId is not available
+                          navigate('/goals');
+                        }
+                      }}
                       className="text-fitness-primary hover:text-fitness-primary/80"
                     >
                       <Play className="w-4 h-4" />

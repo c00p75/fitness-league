@@ -29,20 +29,14 @@ export function Breadcrumbs() {
       if (pathSegments.length >= 2) {
         const goalId = pathSegments[1];
         items.push({ 
-          label: "Goal Details", 
-          href: `/goals/${goalId}` 
+          label: "Workouts", 
+          href: `/goals/${goalId}`,
+          icon: <Dumbbell className="w-4 h-4" />
         });
 
         if (pathSegments.length >= 3 && pathSegments[2] === "workouts") {
-          items.push({ 
-            label: "Workouts", 
-            href: `/goals/${goalId}/workouts`,
-            icon: <Dumbbell className="w-4 h-4" />
-          });
-
           if (pathSegments.length >= 4) {
             const workoutId = pathSegments[3];
-            
             if (pathSegments.length >= 5 && pathSegments[4] === "session") {
               items.push({ 
                 label: "Workout Session", 
