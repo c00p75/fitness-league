@@ -248,7 +248,7 @@ export function VideoAnalytics({
                     <p className="font-medium text-sm">{achievement.name}</p>
                     <p className="text-xs text-gray-600">{achievement.description}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Unlocked {achievement.unlockedAt.toLocaleDateString()}
+                      Unlocked {achievement.unlockedAt?.toDate ? achievement.unlockedAt.toDate().toLocaleDateString() : new Date(achievement.unlockedAt).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

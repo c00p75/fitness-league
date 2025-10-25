@@ -1,4 +1,4 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Badge, Button, Progress } from "@fitness-league/ui";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Progress } from "@fitness-league/ui";
 import { useAuth } from "../../hooks/useAuth";
 import { trpc } from "../../lib/trpc";
 import { Trophy, Target, Calendar, TrendingUp, Plus, Play, Eye } from "lucide-react";

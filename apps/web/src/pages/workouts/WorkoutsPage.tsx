@@ -29,8 +29,15 @@ export function WorkoutsPage() {
 
   // Start workout session mutation
   const startSessionMutation = trpc.workouts.startSession.useMutation({
-    onSuccess: (session) => {
-      navigate(`/workouts/${session.id}`);
+    onSuccess: (session, variables) => {
+      // Find the workout plan to get the goalId
+      const plan = plans.find((p: any) => p.id === variables.planId);
+      if (plan && (plan as any).goalId) {
+        navigate(`/goals/${(plan as any).goalId}/workouts/${variables.planId}/sessions/${session.id}`);
+      } else {
+        // Fallback to a generic route if goalId is not available
+        navigate(`/workouts/sessions/${session.id}`);
+      }
     },
   });
 

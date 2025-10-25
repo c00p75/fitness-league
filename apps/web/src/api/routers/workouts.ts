@@ -31,19 +31,6 @@ const UpdateWorkoutSessionSchema = z.object({
 
 const PROJECT_ID = "fit-league-930c6";
 
-// Helper function to get user profile
-async function getUserProfile(ctx: any) {
-  const profileDoc = await ctx.db
-    .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/profile`)
-    .doc("main")
-    .get();
-  
-  if (!profileDoc.exists) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "User profile not found" });
-  }
-  
-  return profileDoc.data();
-}
 
 // Helper function to get onboarding data
 async function getOnboardingData(ctx: any) {
@@ -106,12 +93,12 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
       if (input.equipment.includes("none")) {
         // Include exercises with no equipment or minimal equipment
         if (!exercise.equipment?.includes("none") && 
-            !exercise.equipment?.some(eq => ["dumbbells", "resistance_bands"].includes(eq))) {
+            !exercise.equipment?.some((eq: any) => ["dumbbells", "resistance_bands"].includes(eq))) {
           return false;
         }
       } else {
         // For other equipment, be more flexible
-        const hasMatchingEquipment = exercise.equipment?.some((eq: string) => 
+        const hasMatchingEquipment = exercise.equipment?.some((eq: any) => 
           input.equipment.includes(eq)
         );
         if (!hasMatchingEquipment) return false;
@@ -132,10 +119,10 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
         "shoulders": ["shoulders"]
       };
 
-      const hasMatchingMuscleGroup = exercise.muscleGroups?.some((mg: string) => 
-        input.focusAreas.some((fa: string) => {
-          const mappedGroups = focusAreaMapping[fa] || [fa];
-          return mappedGroups.some(group => 
+      const hasMatchingMuscleGroup = exercise.muscleGroups?.some((mg: any) => 
+        input.focusAreas.some((fa: any) => {
+          const mappedGroups = focusAreaMapping[fa as keyof typeof focusAreaMapping] || [fa];
+          return mappedGroups.some((group: any) => 
             mg.toLowerCase().includes(group.toLowerCase()) || 
             group.toLowerCase().includes(mg.toLowerCase())
           );
@@ -164,7 +151,7 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
 
   console.log("After filtering:", {
     filteredCount: recommendedExercises.length,
-    exercises: recommendedExercises.map(e => ({ id: e.id, name: e.name, category: e.category }))
+    exercises: recommendedExercises.map((e: any) => ({ id: e.id, name: e.name, category: e.category }))
   });
   
   // Add fallback logic if no exercises found
@@ -191,7 +178,7 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
     
     console.log("Fallback exercises:", {
       fallbackCount: recommendedExercises.length,
-      exercises: recommendedExercises.map(e => ({ id: e.id, name: e.name, category: e.category }))
+      exercises: recommendedExercises.map((e: any) => ({ id: e.id, name: e.name, category: e.category }))
     });
   }
   
