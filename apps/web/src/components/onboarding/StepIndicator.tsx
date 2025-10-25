@@ -23,7 +23,7 @@ export function StepIndicator({ steps, currentStep, className }: StepIndicatorPr
                 "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
                 index <= currentStep
                   ? "bg-fitness-primary text-black"
-                  : "bg-fitness-surface-light text-white/50"
+                  : "bg-black/70 text-white/50"
               )}
             >
               {index + 1}

@@ -141,7 +141,7 @@ export function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-fitness-background py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
+      <div className="container mx-auto px-4 ">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-white mb-2">
             Welcome to Fitness League
@@ -151,14 +151,17 @@ export function OnboardingPage() {
           </p>
         </div>
 
-        <StepIndicator
-          steps={steps}
-          currentStep={currentStep}
-          className="mb-8"
-        />
+       
+        <div className="max-w-2xl mx-auto bg-card rounded-2xl px-5">
+          <StepIndicator
+            steps={steps}
+            currentStep={currentStep}
+            className="mb-8 mt-12 pb-3 pt-4"
+          />
+        </div>
 
         <Card className="fitness-card">
-          <CardHeader>
+          <CardHeader className="text-center">
             <CardTitle>{steps[currentStep].title}</CardTitle>
             <CardDescription>{steps[currentStep].description}</CardDescription>
           </CardHeader>
