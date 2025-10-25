@@ -344,15 +344,15 @@ export function WorkoutDetailPage() {
           <CardHeader>
                   <CardTitle>Exercises</CardTitle>
           </CardHeader>
-          <CardContent>
-                  <div className="space-y-3 overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-neutral-700 px-1 py-5">
+          <CardContent className="px-0">
+                  <div className="space-y-3 overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-neutral-700 py-5 px-6">
                   {(workout as any).exercises.map((exercise: any, index: number) => {
                     const isCompleted = completedExercises.has(index);
                     return (
                       <button
                         key={exercise.exerciseId || index}
                         onClick={() => setSelectedExerciseIndex(index)}
-                        className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${
+                        className={`w-full p-3 rounded-lg text-left transition-all duration-200 border border-neutral-700 ${
                           index === selectedExerciseIndex
                             ? 'ring-2 ring-cyan-400 shadow-lg shadow-cyan-400/20 bg-gradient-to-br from-purple-600/10 via-blue-500/10 to-cyan-400/10'
                             : 'hover:bg-gradient-to-br hover:from-purple-600/5 hover:via-blue-500/5 hover:to-cyan-400/5 hover:ring-1 hover:ring-cyan-400/50'

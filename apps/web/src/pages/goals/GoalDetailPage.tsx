@@ -241,7 +241,7 @@ export function GoalDetailPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => navigate(`/goals/${goalId}/workouts/${workout.id}`)}
+                        onClick={() => navigate(`/goals/${goalId}/workouts/${workout.id}/session`)}
                         className="flex-1"
                       >
                         <Eye className="w-4 h-4 mr-2" />
@@ -249,7 +249,7 @@ export function GoalDetailPage() {
                       </Button>
                       <Button
                         size="sm"
-                        onClick={() => navigate(`/goals/${goalId}/workouts/${workout.id}`)}
+                        onClick={() => navigate(`/goals/${goalId}/workouts/${workout.id}/session`)}
                         className="flex-1 bg-fitness-primary hover:bg-fitness-primary/90"
                       >
                         <Play className="w-4 h-4 mr-2" />

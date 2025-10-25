@@ -33,10 +33,10 @@ export function WorkoutsPage() {
       // Find the workout plan to get the goalId
       const plan = plans.find((p: any) => p.id === variables.planId);
       if (plan && (plan as any).goalId) {
-        navigate(`/goals/${(plan as any).goalId}/workouts/${variables.planId}/sessions/${session.id}`);
+        navigate(`/goals/${(plan as any).goalId}/workouts/${variables.planId}/session`);
       } else {
-        // Fallback to a generic route if goalId is not available
-        navigate(`/workouts/sessions/${session.id}`);
+        // Fallout to a generic route if goalId is not available
+        navigate(`/workouts/${variables.planId}/session`);
       }
     },
   });

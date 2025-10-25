@@ -97,7 +97,7 @@ function App() {
           }
         />
         <Route
-          path="/goals/:goalId/workouts/:workoutId"
+          path="/goals/:goalId/workouts/:workoutId/session"
           element={
             <ProtectedRoute>
               <AppLayout>

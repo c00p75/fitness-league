@@ -42,29 +42,11 @@ export function Breadcrumbs() {
 
           if (pathSegments.length >= 4) {
             const workoutId = pathSegments[3];
-            items.push({ 
-              label: "Workout Details", 
-              href: `/goals/${goalId}/workouts/${workoutId}` 
-            });
-
-            if (pathSegments.length >= 5 && pathSegments[4] === "exercises") {
-              items.push({ 
-                label: "Exercises", 
-                href: `/goals/${goalId}/workouts/${workoutId}/exercises` 
-              });
-
-              if (pathSegments.length >= 6) {
-                const exerciseId = pathSegments[5];
-                items.push({ 
-                  label: "Exercise Details", 
-                  href: `/goals/${goalId}/workouts/${workoutId}/exercises/${exerciseId}` 
-                });
-              }
-            } else if (pathSegments.length >= 5 && pathSegments[4] === "sessions") {
-              const sessionId = pathSegments[5];
+            
+            if (pathSegments.length >= 5 && pathSegments[4] === "session") {
               items.push({ 
                 label: "Workout Session", 
-                href: `/goals/${goalId}/workouts/${workoutId}/sessions/${sessionId}`,
+                href: `/goals/${goalId}/workouts/${workoutId}/session`,
                 icon: <Activity className="w-4 h-4" />
               });
             }
