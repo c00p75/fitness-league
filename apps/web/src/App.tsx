@@ -12,9 +12,6 @@ import { GoalsPage } from "./pages/goals/GoalsPage";
 import { GoalDetailPage } from "./pages/goals/GoalDetailPage";
 import { GoalWorkoutsPage } from "./pages/goals/GoalWorkoutsPage";
 import { WorkoutDetailPage } from "./pages/workouts/WorkoutDetailPage";
-import { WorkoutExercisesPage } from "./pages/workouts/WorkoutExercisesPage";
-import { ExerciseDetailPage } from "./pages/workouts/ExerciseDetailPage";
-import { WorkoutSessionPage } from "./pages/workouts/WorkoutSessionPage";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { Toaster } from "react-hot-toast";
 
@@ -105,36 +102,6 @@ function App() {
             <ProtectedRoute>
               <AppLayout>
                 <WorkoutDetailPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/goals/:goalId/workouts/:workoutId/exercises"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <WorkoutExercisesPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/goals/:goalId/workouts/:workoutId/exercises/:exerciseId"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <ExerciseDetailPage />
-              </AppLayout>
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/goals/:goalId/workouts/:workoutId/sessions/:sessionId"
-          element={
-            <ProtectedRoute>
-              <AppLayout>
-                <WorkoutSessionPage />
               </AppLayout>
             </ProtectedRoute>
           }
