@@ -1,15 +1,22 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { trpc } from "../../lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Progress, Badge } from "@fitness-league/ui";
-import { ArrowLeft, Target, Calendar, TrendingUp, Plus, Play, Eye } from "lucide-react";
+import { Target, Calendar, TrendingUp, Plus, ArrowLeft } from "lucide-react";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { PlanGenerator } from "../../components/workouts/PlanGenerator";
+import { WorkoutPlanCard } from "../../components/workouts/WorkoutPlanCard";
+import { UpdateWorkoutModal } from "../../components/workouts/UpdateWorkoutModal";
 
 export function GoalDetailPage() {
   const { goalId } = useParams<{ goalId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showPlanGenerator, setShowPlanGenerator] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+  const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
 
   // Fetch goal details
   const { data: goal, isLoading: goalLoading } = trpc.goals.getGoal.useQuery(
@@ -26,6 +33,56 @@ export function GoalDetailPage() {
   // Fetch all goals for the PlanGenerator
   const { data: goals = [] } = trpc.goals.getGoals.useQuery(undefined);
 
+  // Delete workout plan mutation
+  const deleteWorkoutMutation = trpc.workouts.deletePlan.useMutation({
+    onSuccess: () => {
+      setDeletingWorkoutId(null);
+      // Refetch workouts to update the list
+      window.location.reload(); // Simple refresh for now
+    },
+    onError: () => {
+      setDeletingWorkoutId(null);
+    },
+  });
+
+  // Update goal progress mutation
+  const updateProgressMutation = trpc.goals.updateGoalProgress.useMutation({
+    onSuccess: () => {
+      // Refetch goal data to update UI
+      queryClient.invalidateQueries();
+    },
+  });
+
+  const handleIncrementProgress = async () => {
+    if (!goal) return;
+    const newValue = Math.min(((goal as any).currentValue || 0) + 1, (goal as any).targetValue || 0);
+    await updateProgressMutation.mutateAsync({ 
+      goalId: goalId!, 
+      currentValue: newValue 
+    });
+  };
+
+  const handleDecrementProgress = async () => {
+    if (!goal) return;
+    const newValue = Math.max(((goal as any).currentValue || 0) - 1, 0);
+    await updateProgressMutation.mutateAsync({ 
+      goalId: goalId!, 
+      currentValue: newValue 
+    });
+  };
+
+  const handleUpdateWorkout = (workout: any) => {
+    setSelectedWorkout(workout);
+    setShowUpdateModal(true);
+  };
+
+  const handleDeleteWorkout = async (workoutId: string) => {
+    if (window.confirm("Are you sure you want to delete this workout plan? This action cannot be undone.")) {
+      setDeletingWorkoutId(workoutId);
+      await deleteWorkoutMutation.mutateAsync({ planId: workoutId });
+    }
+  };
+
   if (goalLoading) {
     return (
       <div className="min-h-screen bg-fitness-background flex items-center justify-center">
@@ -41,16 +98,15 @@ export function GoalDetailPage() {
           <h2 className="text-2xl font-bold text-fitness-foreground mb-4">Goal Not Found</h2>
           <p className="text-fitness-muted-foreground mb-6">The goal you're looking for doesn't exist.</p>
           <Button onClick={() => navigate("/goals")}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Goals
+            Go to Goals
           </Button>
         </div>
       </div>
     );
   }
 
-  const progressPercentage = goal.currentValue 
-    ? Math.min((goal.currentValue / goal.targetValue) * 100, 100)
+  const progressPercentage = (goal as any).currentValue 
+    ? Math.min(((goal as any).currentValue / (goal as any).targetValue) * 100, 100)
     : 0;
 
   const getGoalTypeLabel = (type: string) => {
@@ -125,24 +181,24 @@ export function GoalDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-start flex-col">
           <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/goals")}
-            className="text-fitness-muted-foreground hover:text-fitness-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Goals
-          </Button>
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/goals")}
+              className="bg-[#212121] hover:bg-[#262626] mb-6 py-1 h-fit text-[0.8rem] -mt-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Goals
+            </Button>
           <div>
-            <h1 className="text-3xl font-bold text-fitness-foreground">{getGoalTypeLabel(goal.type)}</h1>
+            <h1 className="text-3xl font-bold text-fitness-foreground">{getGoalTypeLabel((goal as any).type)}</h1>
             <p className="text-fitness-muted-foreground">Track your progress and manage workouts</p>
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Badge className={getGoalTypeColor(goal.type)}>
-            {getGoalTypeLabel(goal.type)}
+          <Badge className={getGoalTypeColor((goal as any).type)}>
+            {getGoalTypeLabel((goal as any).type)}
           </Badge>
         </div>
       </div>
@@ -155,7 +211,29 @@ export function GoalDetailPage() {
             <span>Goal Progress</span>
           </CardTitle>
           <CardDescription>
-            {goal.currentValue} {goal.unit} of {goal.targetValue} {goal.unit}
+            <div className="flex items-center justify-between">
+              <span>{(goal as any).currentValue} {(goal as any).unit} of {(goal as any).targetValue} {(goal as any).unit}</span>
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleDecrementProgress}
+                  className="h-6 w-6 p-0 bg-[#212121] hover:bg-[#262626]"
+                  disabled={!(goal as any).currentValue || (goal as any).currentValue <= 0 || updateProgressMutation.isPending}
+                >
+                  -
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleIncrementProgress}
+                  className="h-6 w-6 p-0 bg-[#212121] hover:bg-[#262626]"
+                  disabled={(goal as any).currentValue >= (goal as any).targetValue || updateProgressMutation.isPending}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -172,7 +250,7 @@ export function GoalDetailPage() {
               </div>
               <div className="flex items-center space-x-2">
                 <TrendingUp className="w-4 h-4" />
-                <span>Progress: {goal.currentValue || 0} {goal.unit}</span>
+                <span>Progress: {(goal as any).currentValue || 0} {(goal as any).unit}</span>
               </div>
             </div>
           </div>
@@ -209,7 +287,7 @@ export function GoalDetailPage() {
                 Create your first workout plan to start working towards this goal.
               </p>
               <Button
-                onClick={() => navigate(`/goals/${goalId}`)}
+                onClick={() => setShowPlanGenerator(true)}
                 className="bg-fitness-primary hover:bg-fitness-primary/90"
               >
                 <Plus className="w-4 h-4 mr-2" />
@@ -220,51 +298,23 @@ export function GoalDetailPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {workouts.map((workout: any) => (
-              <Card key={workout.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-lg">{workout.name}</CardTitle>
-                  <CardDescription>{workout.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-fitness-muted-foreground">Duration</span>
-                      <span>{workout.durationWeeks} weeks</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-fitness-muted-foreground">Frequency</span>
-                      <span>{workout.workoutsPerWeek} sessions/week</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-fitness-muted-foreground">Difficulty</span>
-                      <Badge variant="secondary">{workout.difficulty}</Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-fitness-muted-foreground">Exercises</span>
-                      <span>{workout.exercises?.length || 0} exercises</span>
-                    </div>
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate(`/goals/${goalId}/workouts/${workout.id}/session`)}
-                        className="flex-1"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => navigate(`/goals/${goalId}/workouts/${workout.id}/session`)}
-                        className="flex-1 bg-fitness-primary hover:bg-fitness-primary/90"
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Start
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <WorkoutPlanCard
+                key={workout.id}
+                plan={{
+                  id: workout.id,
+                  name: workout.name || "Unnamed Plan",
+                  description: workout.description || "No description available",
+                  durationWeeks: workout.durationWeeks || 4,
+                  workoutsPerWeek: workout.workoutsPerWeek || 3,
+                  difficulty: workout.difficulty || "beginner",
+                  exercises: workout.exercises || [],
+                  createdAt: workout.createdAt?.toDate ? workout.createdAt.toDate() : new Date(workout.createdAt),
+                }}
+                onStartWorkout={() => navigate(`/goals/${goalId}/workouts/${workout.id}/session`)}
+                onUpdateWorkout={() => handleUpdateWorkout(workout)}
+                onDeleteWorkout={() => handleDeleteWorkout(workout.id)}
+                isDeleting={deletingWorkoutId === workout.id}
+              />
             ))}
           </div>
         )}
@@ -274,9 +324,21 @@ export function GoalDetailPage() {
       <PlanGenerator
         isOpen={showPlanGenerator}
         onClose={() => setShowPlanGenerator(false)}
-        goals={goals}
+        goals={goals as any}
         preSelectedGoalId={goalId}
       />
+
+      {/* Update Workout Modal */}
+      {selectedWorkout && (
+        <UpdateWorkoutModal
+          isOpen={showUpdateModal}
+          onClose={() => {
+            setShowUpdateModal(false);
+            setSelectedWorkout(null);
+          }}
+          workout={selectedWorkout}
+        />
+      )}
     </div>
   );
 }
