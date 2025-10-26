@@ -2,14 +2,17 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { trpc } from "../../lib/trpc";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from "@fitness-league/ui";
-import { ArrowLeft, Clock, Dumbbell, Calendar, Target, Eye, Activity, Check } from "lucide-react";
+import { Clock, Dumbbell, Calendar, Target, Eye, Activity, Check, TrendingUp, CheckCircle, ArrowLeft, Star } from "lucide-react";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { WorkoutGoalUpdateModal } from "../../components/goals/WorkoutGoalUpdateModal";
 
 export function WorkoutDetailPage() {
   const { goalId, workoutId } = useParams<{ goalId: string; workoutId: string }>();
   const navigate = useNavigate();
   const [selectedExerciseIndex, setSelectedExerciseIndex] = useState(0);
   const [completedExercises, setCompletedExercises] = useState<Set<number>>(new Set());
+  const [showGoalUpdateModal, setShowGoalUpdateModal] = useState(false);
+  const [isWorkoutCompleted, setIsWorkoutCompleted] = useState(false);
 
   // Fetch workout details
   const { data: workout, isLoading: workoutLoading } = trpc.workouts.getPlan.useQuery(
@@ -22,6 +25,30 @@ export function WorkoutDetailPage() {
     { goalId: goalId! },
     { enabled: !!goalId }
   );
+
+
+  // Handle goal updates from workout completion
+  const handleGoalUpdate = async (goalUpdates: Array<{ goalId: string; progressValue: number }>) => {
+    // For now, we'll just complete the session without goal updates
+    // In a real implementation, you might want to create a session first
+    // and then complete it with goal updates
+    try {
+      // This is a placeholder - in a real app, you'd have a session ID
+      // For now, we'll just update the goal directly
+      const goalUpdateMutation = trpc.goals.updateGoalProgress.useMutation();
+      
+      for (const goalUpdate of goalUpdates) {
+        await goalUpdateMutation.mutateAsync({
+          goalId: goalUpdate.goalId,
+          currentValue: goalUpdate.progressValue,
+        });
+      }
+      
+      setIsWorkoutCompleted(true);
+    } catch (error) {
+      console.error("Failed to update goal:", error);
+    }
+  };
 
 
 
@@ -40,8 +67,7 @@ export function WorkoutDetailPage() {
           <h2 className="text-2xl font-bold text-fitness-foreground mb-4">Workout Not Found</h2>
           <p className="text-fitness-muted-foreground mb-6">The workout you're looking for doesn't exist.</p>
           <Button onClick={() => navigate(`/goals/${goalId}`)}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Workouts
+            Go to Workouts
           </Button>
         </div>
       </div>
@@ -88,12 +114,12 @@ export function WorkoutDetailPage() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-start flex-col">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate(`/goals/${goalId}`)}
-            className="text-fitness-muted-foreground hover:text-fitness-foreground"
+            className="bg-[#212121] hover:bg-[#262626] mb-6 py-1 h-fit text-[0.8rem] -mt-2"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Workouts
@@ -325,15 +351,57 @@ export function WorkoutDetailPage() {
                     }
                   }
                 }}
-                className={`w-full py-3 text-lg ${
+                className={`w-full py-6 text-lg ${
                   completedExercises.has(selectedExerciseIndex)
-                    ? 'bg-green-700 hover:bg-green-600'
-                    : 'bg-green-600 hover:bg-green-500'
+                    ? 'bg-green-700 hover:bg-green-600 text-white'
+                    : 'bg-transparent outline outline-1 outline-fitness-primary text-fitness-primary hover:bg-fitness-primary/10'
                 }`}
               >
-                <Check className="w-5 h-5 mr-2" />
+                {completedExercises.has(selectedExerciseIndex) ? <Check className="w-5 h-5 mr-2" /> : <Star className="w-4 h-4 mr-2" />}
                 {completedExercises.has(selectedExerciseIndex) ? "Completed" : "Mark Complete"}
         </Button>
+
+              {/* Complete Workout Section */}
+              {completedExercises.size === (workout as any).exercises?.length && !isWorkoutCompleted && (
+                <div className="mt-6 p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
+                  <div className="text-center mb-4">
+                    <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-2" />
+                    <h3 className="text-lg font-semibold text-fitness-foreground mb-2">
+                      Workout Complete! 🎉
+                    </h3>
+                    <p className="text-fitness-muted-foreground">
+                      Great job! You've completed all exercises. Update your goal progress to track your achievement.
+                    </p>
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <Button
+                      onClick={() => setShowGoalUpdateModal(true)}
+                      className="flex-1 bg-fitness-primary hover:bg-fitness-primary/90"
+                    >
+                      <TrendingUp className="w-4 h-4 mr-2" />
+                      Update Goal Progress
+                    </Button>
+                    <Button
+                      onClick={() => setIsWorkoutCompleted(true)}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Skip for Now
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Workout Completed Message */}
+              {isWorkoutCompleted && (
+                <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center text-green-700">
+                    <CheckCircle className="w-5 h-5 mr-2" />
+                    <span className="font-medium">Workout completed successfully!</span>
+                  </div>
+                </div>
+              )}
             </div>
       </div>
 
@@ -383,6 +451,16 @@ export function WorkoutDetailPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Goal Update Modal */}
+      {goalId && (
+        <WorkoutGoalUpdateModal
+          isOpen={showGoalUpdateModal}
+          onClose={() => setShowGoalUpdateModal(false)}
+          goalId={goalId}
+          onComplete={handleGoalUpdate}
+        />
       )}
     </div>
   );

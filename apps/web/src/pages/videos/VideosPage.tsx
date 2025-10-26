@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Play, Search, BarChart3, List, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Play, Search, BarChart3, List, Plus, ArrowLeft } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger } from "@fitness-league/ui";
 import { VideoSearch, VideoFilters } from "../../components/video/VideoSearch";
 import { PlaylistManager, WorkoutPlaylist } from "../../components/video/PlaylistManager";
@@ -9,6 +10,7 @@ import { YouTubePlayer } from "../../components/video/YouTubePlayer";
 import { trpc } from "../../lib/trpc";
 
 export function VideosPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("search");
   const [selectedPlaylist, setSelectedPlaylist] = useState<WorkoutPlaylist | null>(null);
   const [videoFilters, setVideoFilters] = useState<VideoFilters>({});
@@ -100,10 +102,23 @@ export function VideosPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Workout Videos</h1>
-        <p className="text-gray-600">
-          Discover, organize, and track your fitness journey with our comprehensive video library
-        </p>
+        <div className="flex items-start flex-col">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/dashboard")}
+            className="bg-[#212121] hover:bg-[#262626] mb-6 py-1 h-fit text-[0.8rem] -mt-2"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Workout Videos</h1>
+            <p className="text-gray-600">
+              Discover, organize, and track your fitness journey with our comprehensive video library
+            </p>
+          </div>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

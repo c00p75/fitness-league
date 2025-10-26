@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input, Label, Card, CardContent, CardDescription, CardHeader, CardTitle, Badge } from "@fitness-league/ui";
+import { useNavigate } from "react-router-dom";
+import { Button, Input, Label, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@fitness-league/ui";
 import { UpdateProfileSchema, type UpdateProfileInput, FitnessGoal, ExperienceLevel } from "@fitness-league/shared";
 import { useAuth } from "../../hooks/useAuth";
 import { GoalSelection } from "../../components/onboarding/GoalSelection";
@@ -10,11 +11,13 @@ import { WorkoutPreferencesForm } from "../../components/onboarding/WorkoutPrefe
 import { trpc } from "../../lib/trpc";
 import toast from "react-hot-toast";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { ArrowLeft } from "lucide-react";
 
 type TabType = "personal" | "goals" | "preferences";
 
 export function ProfilePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>("personal");
 
   // Fetch profile data with onboarding data
@@ -34,7 +37,7 @@ export function ProfilePage() {
         age: 25,
         height: 170,
         weight: 70,
-        gender: "other",
+        gender: "male",
       },
       fitnessGoal: "general_fitness",
       experienceLevel: "beginner",
@@ -52,11 +55,11 @@ export function ProfilePage() {
     if (profileData) {
       reset({
         displayName: profileData.displayName || "",
-        biometrics: profileData.biometrics || {
-          age: 25,
-          height: 170,
-          weight: 70,
-          gender: "other",
+        biometrics: {
+          age: profileData.biometrics?.age || 25,
+          height: profileData.biometrics?.height || 170,
+          weight: profileData.biometrics?.weight || 70,
+          gender: (profileData.biometrics?.gender === "female" ? "female" : "male"),
         },
         fitnessGoal: (profileData as any).fitnessGoal || "general_fitness",
         experienceLevel: (profileData as any).experienceLevel || "beginner",
@@ -100,9 +103,20 @@ export function ProfilePage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white">Profile</h1>
-        <p className="text-white/70">Manage your account settings and preferences</p>
+      <div className="flex items-start flex-col">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/dashboard")}
+          className="bg-[#212121] hover:bg-[#262626] mb-6 py-1 h-fit text-[0.8rem] -mt-2"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Dashboard
+        </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-white">Profile</h1>
+          <p className="text-white/70">Manage your account settings and preferences</p>
+        </div>
       </div>
 
       <div className="max-w-2xl mx-auto">
@@ -214,7 +228,6 @@ export function ProfilePage() {
                         >
                           <option value="male">Male</option>
                           <option value="female">Female</option>
-                          <option value="other">Other</option>
                         </select>
                         {errors.biometrics?.gender && (
                           <p className="text-sm text-destructive">{errors.biometrics.gender.message}</p>
