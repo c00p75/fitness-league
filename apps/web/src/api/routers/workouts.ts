@@ -100,21 +100,25 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
       return false;
     }
     
-    // Improved equipment filtering - more lenient
+    // Improved equipment filtering
     if (input?.equipment && input.equipment.length > 0) {
-      // If "none" is selected, prioritize bodyweight but allow minimal equipment
-      if (input.equipment.includes("none")) {
-        // Include exercises with no equipment, or minimal portable equipment
-        const allowedEquipment = ["none", "dumbbells", "resistance_bands", "yoga_mat"];
-        const hasAllowedEquipment = exercise.equipment?.some((eq: any) => 
-          allowedEquipment.includes(eq)
-        ) || !exercise.equipment || exercise.equipment.length === 0;
+      // If "gym_access" is selected, allow all equipment
+      if (input.equipment.includes("gym_access")) {
+        // Allow all exercises
+      } else if (input.equipment.includes("none")) {
+        // Bodyweight focus but allow minimal equipment
+        const allowedEquipment = ["none", "yoga_mat", "resistance_bands"];
+        const hasAllowedEquipment = !exercise.equipment || 
+          exercise.equipment.length === 0 ||
+          exercise.equipment.some((eq: any) => allowedEquipment.includes(eq));
         if (!hasAllowedEquipment) return false;
       } else {
-        // For other equipment, be more flexible
-        const hasMatchingEquipment = exercise.equipment?.some((eq: any) => 
-          input.equipment.includes(eq)
-        );
+        // User has specific equipment - match any of them
+        const hasMatchingEquipment = !exercise.equipment || 
+          exercise.equipment.length === 0 ||
+          exercise.equipment.some((eq: any) => 
+            input.equipment.includes(eq) || eq === "none"
+          );
         if (!hasMatchingEquipment) return false;
       }
     }
@@ -149,6 +153,70 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
     equipment: input?.equipment,
     focusAreas: input?.focusAreas
   });
+
+  // Score exercises based on focus area match and other preferences
+  const scoredExercises = recommendedExercises.map((exercise: any) => {
+    let score = 0;
+    
+    // Focus area matching (muscle groups)
+    if (input?.focusAreas && input.focusAreas.length > 0) {
+      const matchingGroups = exercise.muscleGroups?.filter((mg: string) => 
+        input.focusAreas.some((fa: string) => 
+          mg.toLowerCase().includes(fa.toLowerCase()) || 
+          fa.toLowerCase().includes(mg.toLowerCase())
+        )
+      );
+      score += (matchingGroups?.length || 0) * 10;
+    }
+    
+    // Duration preference matching
+    if (input?.duration) {
+      const durationDiff = Math.abs(exercise.duration - input.duration);
+      score += Math.max(0, 10 - durationDiff / 5);
+    }
+    
+    // Intensity matching (map to difficulty)
+    if (input?.intensity) {
+      const intensityMap = { low: "beginner", moderate: "intermediate", high: "advanced" };
+      if (exercise.difficulty === intensityMap[input.intensity as keyof typeof intensityMap]) {
+        score += 5;
+      }
+    }
+    
+    // Bonus for YouTube videos
+    if (exercise.youtubeVideoId) {
+      score += 3;
+    }
+    
+    return { ...exercise, score };
+  });
+
+  // Sort by score (descending)
+  scoredExercises.sort((a: any, b: any) => b.score - a.score);
+
+  // Take top 16 candidates for variety
+  const topCandidates = scoredExercises.slice(0, Math.min(16, scoredExercises.length));
+
+  // Shuffle the top candidates to add variety
+  const shuffled = topCandidates.sort(() => Math.random() - 0.5);
+
+  console.log("Exercise scoring results:", {
+    totalScored: scoredExercises.length,
+    topScores: scoredExercises.slice(0, 5).map((e: any) => ({
+      name: e.name,
+      score: e.score,
+      muscleGroups: e.muscleGroups,
+      category: e.category
+    })),
+    focusAreas: input?.focusAreas,
+    selectedExercises: shuffled.slice(0, 8).map((e: any) => ({
+      name: e.name,
+      score: e.score
+    }))
+  });
+
+  // Return 6-8 exercises
+  return shuffled.slice(0, 8);
 
   // If no exercises match, relax filters progressively
   if (recommendedExercises.length === 0) {
@@ -201,15 +269,52 @@ async function getRecommendedExercises(goalType: string, experienceLevel: string
     exercises: recommendedExercises.map((e: any) => ({ id: e.id, name: e.name, category: e.category }))
   });
   
-  // Prioritize exercises with YouTube videos
-  recommendedExercises.sort((a: any, b: any) => {
-    if (a.youtubeVideoId && !b.youtubeVideoId) return -1;
-    if (!a.youtubeVideoId && b.youtubeVideoId) return 1;
-    return 0;
+  // Apply scoring to fallback exercises as well
+  const fallbackScoredExercises = recommendedExercises.map((exercise: any) => {
+    let score = 0;
+    
+    // Focus area matching (muscle groups)
+    if (input?.focusAreas && input.focusAreas.length > 0) {
+      const matchingGroups = exercise.muscleGroups?.filter((mg: string) => 
+        input.focusAreas.some((fa: string) => 
+          mg.toLowerCase().includes(fa.toLowerCase()) || 
+          fa.toLowerCase().includes(mg.toLowerCase())
+        )
+      );
+      score += (matchingGroups?.length || 0) * 10;
+    }
+    
+    // Duration preference matching
+    if (input?.duration) {
+      const durationDiff = Math.abs(exercise.duration - input.duration);
+      score += Math.max(0, 10 - durationDiff / 5);
+    }
+    
+    // Intensity matching (map to difficulty)
+    if (input?.intensity) {
+      const intensityMap = { low: "beginner", moderate: "intermediate", high: "advanced" };
+      if (exercise.difficulty === intensityMap[input.intensity as keyof typeof intensityMap]) {
+        score += 5;
+      }
+    }
+    
+    // Bonus for YouTube videos
+    if (exercise.youtubeVideoId) {
+      score += 3;
+    }
+    
+    return { ...exercise, score };
   });
+
+  // Sort by score (descending)
+  fallbackScoredExercises.sort((a: any, b: any) => b.score - a.score);
+
+  // Take top candidates and shuffle for variety
+  const fallbackTopCandidates = fallbackScoredExercises.slice(0, Math.min(16, fallbackScoredExercises.length));
+  const fallbackShuffled = fallbackTopCandidates.sort(() => Math.random() - 0.5);
   
   // Return top 6-8 exercises
-  return recommendedExercises.slice(0, 8);
+  return fallbackShuffled.slice(0, 8);
 }
 
 // Helper function to create workout plan
@@ -406,18 +511,43 @@ export const workoutsRouter = router({
 
   // Complete workout session
   completeSession: protectedProcedure
-    .input(z.object({ sessionId: z.string() }))
+    .input(z.object({ 
+      sessionId: z.string(),
+      goalUpdates: z.array(z.object({
+        goalId: z.string(),
+        progressValue: z.number().min(0),
+      })).optional(),
+    }))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.auth?.uid) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
+      // Complete the session
       await ctx.db
         .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/workoutSessions`)
         .doc(input.sessionId)
         .update({
           completedAt: new Date(),
         });
+
+      // Update goals if provided
+      if (input.goalUpdates && input.goalUpdates.length > 0) {
+        const batch = ctx.db.batch();
+        
+        for (const goalUpdate of input.goalUpdates) {
+          const goalRef = ctx.db
+            .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/goals`)
+            .doc(goalUpdate.goalId);
+          
+          batch.update(goalRef, {
+            currentValue: goalUpdate.progressValue,
+            updatedAt: new Date(),
+          });
+        }
+        
+        await batch.commit();
+      }
 
       return { success: true };
     }),
@@ -466,5 +596,64 @@ export const workoutsRouter = router({
         startedAt: sessionDoc.data()?.startedAt?.toDate(),
         completedAt: sessionDoc.data()?.completedAt?.toDate(),
       };
+    }),
+
+  // Update workout plan
+  updatePlan: protectedProcedure
+    .input(z.object({
+      planId: z.string(),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      durationWeeks: z.number().min(1).max(52).optional(),
+      workoutsPerWeek: z.number().min(1).max(7).optional(),
+      difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.auth?.uid) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const updateData: any = { updatedAt: new Date() };
+      if (input.name) updateData.name = input.name;
+      if (input.description) updateData.description = input.description;
+      if (input.durationWeeks) updateData.durationWeeks = input.durationWeeks;
+      if (input.workoutsPerWeek) updateData.workoutsPerWeek = input.workoutsPerWeek;
+      if (input.difficulty) updateData.difficulty = input.difficulty;
+
+      await ctx.db
+        .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/workoutPlans`)
+        .doc(input.planId)
+        .update(updateData);
+
+      return { success: true };
+    }),
+
+  // Delete workout plan
+  deletePlan: protectedProcedure
+    .input(z.object({ planId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.auth?.uid) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      // Delete the workout plan
+      await ctx.db
+        .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/workoutPlans`)
+        .doc(input.planId)
+        .delete();
+
+      // Also delete associated workout sessions
+      const sessionsSnapshot = await ctx.db
+        .collection(`artifacts/${PROJECT_ID}/users/${ctx.auth.uid}/workoutSessions`)
+        .where('planId', '==', input.planId)
+        .get();
+
+      const batch = ctx.db.batch();
+      sessionsSnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      await batch.commit();
+
+      return { success: true };
     }),
 });

@@ -20,12 +20,12 @@ interface EditGoalModalProps {
 }
 
 const goalTypes = [
-  { value: "weight_loss", label: "Weight Loss", icon: "🔥", unit: "kg" },
-  { value: "muscle_gain", label: "Muscle Gain", icon: "💪", unit: "kg" },
-  { value: "flexibility", label: "Flexibility", icon: "🧘", unit: "sessions" },
-  { value: "general_fitness", label: "General Fitness", icon: "🏃", unit: "workouts" },
-  { value: "endurance_improvement", label: "Endurance", icon: "⚡", unit: "minutes" },
-  { value: "strength_gain", label: "Strength", icon: "🏋️", unit: "kg" },
+  { value: "weight_loss", label: "Weight Loss", unit: "kg" },
+  { value: "muscle_gain", label: "Muscle Gain", unit: "kg" },
+  { value: "flexibility", label: "Flexibility", unit: "sessions" },
+  { value: "general_fitness", label: "General Fitness", unit: "workouts" },
+  { value: "endurance_improvement", label: "Endurance", unit: "minutes" },
+  { value: "strength_gain", label: "Strength", unit: "kg" },
 ];
 
 export function EditGoalModal({ isOpen, onClose, goal }: EditGoalModalProps) {
@@ -82,7 +82,7 @@ export function EditGoalModal({ isOpen, onClose, goal }: EditGoalModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md bg-card rounded-lg shadow-xl">
         <div className="p-6">
           {/* Header */}
@@ -124,7 +124,6 @@ export function EditGoalModal({ isOpen, onClose, goal }: EditGoalModalProps) {
                         : ""
                     }`}
                   >
-                    <span className="mr-2">{goalType.icon}</span>
                     {goalType.label}
                   </Button>
                 ))}

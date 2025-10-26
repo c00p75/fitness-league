@@ -99,7 +99,7 @@ export function BiometricsForm({ register, errors, setValue, watch }: Biometrics
               value={age}
               onChange={(e) => handleInputChange('age', e.target.value)}
               {...register("biometrics.age", { valueAsNumber: true })}
-              className={`h-12 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.age ? "border-destructive" : ""}`}
+              className={`py-8 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.age ? "border-destructive" : ""}`}
             />
             <Button
               type="button"
@@ -130,12 +130,12 @@ export function BiometricsForm({ register, errors, setValue, watch }: Biometrics
                 setValue("biometrics.gender", "male");
               }}
             >
-              <CardContent className="p-2 text-center">
+              <CardContent className="px-2 py-4 text-center">
                 <h3 className="font-semibold text-white">Male</h3>
               </CardContent>
             </Card>
             <Card
-              className={`cursor-pointer transition-all h-12 ${
+              className={`cursor-pointer transition-all ${
                 gender === 'female'
                   ? "ring-2 ring-fitness-primary bg-fitness-primary/10"
                   : "bg-black"
@@ -145,7 +145,7 @@ export function BiometricsForm({ register, errors, setValue, watch }: Biometrics
                 setValue("biometrics.gender", "female");
               }}
             >
-              <CardContent className="p-2 text-center">
+              <CardContent className="px-2 py-4 text-center">
                 <h3 className="font-semibold text-white">Female</h3>
               </CardContent>
             </Card>
@@ -175,7 +175,7 @@ export function BiometricsForm({ register, errors, setValue, watch }: Biometrics
               value={height}
               onChange={(e) => handleInputChange('height', e.target.value)}
               {...register("biometrics.height", { valueAsNumber: true })}
-              className={`h-12 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.height ? "border-destructive" : ""}`}
+              className={`py-8 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.height ? "border-destructive" : ""}`}
             />
             <Button
               type="button"
@@ -210,7 +210,7 @@ export function BiometricsForm({ register, errors, setValue, watch }: Biometrics
               value={weight}
               onChange={(e) => handleInputChange('weight', e.target.value)}
               {...register("biometrics.weight", { valueAsNumber: true })}
-              className={`h-12 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.weight ? "border-destructive" : ""}`}
+              className={`py-8 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.weight ? "border-destructive" : ""}`}
             />
             <Button
               type="button"

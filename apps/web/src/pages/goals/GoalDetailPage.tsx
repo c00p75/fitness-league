@@ -213,12 +213,12 @@ export function GoalDetailPage() {
           <CardDescription>
             <div className="flex items-center justify-between">
               <span>{(goal as any).currentValue} {(goal as any).unit} of {(goal as any).targetValue} {(goal as any).unit}</span>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-4 -mt-5">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   onClick={handleDecrementProgress}
-                  className="h-6 w-6 p-0 bg-[#212121] hover:bg-[#262626]"
+                  className="h-6 w-6 scale-125 p-0 bg-[#212121] hover:bg-[#262626]"
                   disabled={!(goal as any).currentValue || (goal as any).currentValue <= 0 || updateProgressMutation.isPending}
                 >
                   -
@@ -227,7 +227,7 @@ export function GoalDetailPage() {
                   variant="ghost" 
                   size="sm" 
                   onClick={handleIncrementProgress}
-                  className="h-6 w-6 p-0 bg-[#212121] hover:bg-[#262626]"
+                  className="h-6 w-6 scale-125 p-0 bg-[#212121] hover:bg-[#262626]"
                   disabled={(goal as any).currentValue >= (goal as any).targetValue || updateProgressMutation.isPending}
                 >
                   +

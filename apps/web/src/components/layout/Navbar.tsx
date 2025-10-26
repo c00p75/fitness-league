@@ -27,19 +27,26 @@ export function Navbar() {
 
           {/* Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`px-3 py-2 rounded-lg transition-colors ${
-                  location.pathname === item.path
-                    ? "bg-fitness-primary text-black font-semibold"
-                    : "text-white/70 hover:text-white hover:bg-fitness-surface-light"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {navItems.map((item) => {
+              // Special logic for Goals - show as active for all goal-related routes
+              const isActive = item.path === "/goals" 
+                ? location.pathname.startsWith("/goals")
+                : location.pathname === item.path;
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`px-3 py-2 rounded-lg transition-colors ${
+                    isActive
+                      ? "bg-fitness-primary text-black font-semibold"
+                      : "text-white/70 hover:text-white hover:bg-fitness-surface-light"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* User menu */}

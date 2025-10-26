@@ -6,21 +6,14 @@ import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
 import { Label } from "@fitness-league/ui";
 import toast from "react-hot-toast";
-import { X, TrendingUp, Plus, Minus, CheckCircle, Star } from "lucide-react";
+import { X, TrendingUp, Plus, Minus, Target, CheckCircle } from "lucide-react";
 
-interface UpdateProgressModalProps {
+interface WorkoutGoalUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
-  goal: {
-    id: string;
-    type: string;
-    currentValue: number;
-    targetValue: number;
-    unit: string;
-  };
+  goalId: string;
+  onComplete: (goalUpdates: Array<{ goalId: string; progressValue: number }>) => void;
 }
-
-// Removed emoji icons for cleaner design
 
 const goalTypeLabels = {
   weight_loss: "Weight Loss",
@@ -31,92 +24,88 @@ const goalTypeLabels = {
   strength_gain: "Strength",
 };
 
-export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressModalProps) {
+export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: WorkoutGoalUpdateModalProps) {
   const queryClient = useQueryClient();
-  const [newValue, setNewValue] = useState(goal.currentValue.toString());
+  const [progressValue, setProgressValue] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
+
+  // Fetch goal details
+  const { data: goal, isLoading: goalLoading } = trpc.goals.getGoal.useQuery(
+    { goalId },
+    { enabled: !!goalId && isOpen }
+  );
 
   // Update form when goal prop changes
   useEffect(() => {
-    setNewValue(goal.currentValue.toString());
-    setIsCompleted(false);
+    if (goal) {
+      setProgressValue(goal.currentValue.toString());
+      setIsCompleted(false);
+    }
   }, [goal]);
 
-  const updateProgressMutation = trpc.goals.updateGoalProgress.useMutation({
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
-      
-      // Show different success messages based on progress
-      const progressPercentage = (variables.currentValue / goal.targetValue) * 100;
-      
-      if (progressPercentage >= 100) {
-        setIsCompleted(true);
-        // Show goal completed toast
-        toast.success("Goal Completed!", {
-          duration: 4000,
-          style: {
-            background: '#10b981',
-            color: '#fff',
-          },
-        });
-        setTimeout(() => {
-          onClose();
-          setIsCompleted(false);
-        }, 2000);
-      } else {
-        // Show progress updated toast
-        toast.success("Progress updated", {
-          duration: 3000,
-          style: {
-            background: '#10b981',
-            color: '#fff',
-          },
-        });
-        setTimeout(() => {
-          onClose();
-        }, 1000);
-      }
-    },
-    onError: () => {
-      toast.error("Failed to update progress. Please try again.", {
-        duration: 4000,
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const numericValue = parseFloat(progressValue);
+    if (isNaN(numericValue) || numericValue < 0) {
+      toast.error("Please enter a valid progress value", {
+        duration: 3000,
         style: {
           background: '#ef4444',
           color: '#fff',
         },
       });
-    },
-  });
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const numericValue = parseFloat(newValue);
-    if (isNaN(numericValue) || numericValue < 0) {
       return;
     }
 
-    await updateProgressMutation.mutateAsync({
-      goalId: goal.id,
-      currentValue: numericValue,
-    });
+    // Call the completion callback with goal updates
+    onComplete([{ goalId, progressValue: numericValue }]);
+    
+    // Show success message
+    const progressPercentage = (numericValue / goal!.targetValue) * 100;
+    if (progressPercentage >= 100) {
+      setIsCompleted(true);
+      toast.success("Goal Completed!", {
+        duration: 4000,
+        style: {
+          background: '#10b981',
+          color: '#fff',
+        },
+      });
+    } else {
+      toast.success("Progress updated", {
+        duration: 3000,
+        style: {
+          background: '#10b981',
+          color: '#fff',
+        },
+      });
+    }
+    
+    // Close modal after a short delay
+    setTimeout(() => {
+      onClose();
+      setIsCompleted(false);
+    }, 1500);
   };
 
   const handleIncrement = (amount: number) => {
-    const current = parseFloat(newValue) || 0;
+    const current = parseFloat(progressValue) || 0;
     const newVal = Math.max(0, current + amount);
-    setNewValue(newVal.toString());
+    setProgressValue(newVal.toString());
   };
 
   const handleSetToTarget = () => {
-    setNewValue(goal.targetValue.toString());
+    if (goal) {
+      setProgressValue(goal.targetValue.toString());
+    }
   };
 
-  const currentProgress = parseFloat(newValue) || 0;
+  if (!isOpen || !goal) return null;
+
+  const currentProgress = parseFloat(progressValue) || 0;
   const progressPercentage = Math.min(100, (currentProgress / goal.targetValue) * 100);
   const isGoalReached = currentProgress >= goal.targetValue;
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
@@ -129,7 +118,7 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
                 <TrendingUp className="w-4 h-4 text-fitness-primary" />
               </div>
               <h2 className="text-xl font-semibold text-fitness-foreground">
-                Update Progress
+                Update Goal Progress
               </h2>
             </div>
             <Button
@@ -145,6 +134,7 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
           {/* Goal Info */}
           <div className="mb-6 p-4 bg-fitness-primary/5 rounded-lg">
             <div className="flex items-center mb-2">
+              <Target className="w-5 h-5 text-fitness-primary mr-2" />
               <h3 className="font-semibold text-fitness-foreground">
                 {goalTypeLabels[goal.type as keyof typeof goalTypeLabels] || goal.type}
               </h3>
@@ -211,8 +201,8 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
                       type="number"
                       step="0.1"
                       min="0"
-                      value={newValue}
-                      onChange={(e) => setNewValue(e.target.value)}
+                      value={progressValue}
+                      onChange={(e) => setProgressValue(e.target.value)}
                       placeholder="Enter progress"
                       className="text-center"
                     />
@@ -261,7 +251,7 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
                 onClick={handleSetToTarget}
                 className="w-full"
               >
-                <Star className="w-4 h-4 mr-2" />
+                <Target className="w-4 h-4 mr-2" />
                 Complete Goal ({goal.targetValue} {goal.unit})
               </Button>
             )}
@@ -288,10 +278,10 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
               </Button>
               <Button
                 type="submit"
-                disabled={updateProgressMutation.isPending || isNaN(parseFloat(newValue)) || parseFloat(newValue) < 0}
+                disabled={isNaN(parseFloat(progressValue)) || parseFloat(progressValue) < 0}
                 className="flex-1 bg-fitness-primary hover:bg-fitness-primary/90"
               >
-                {updateProgressMutation.isPending ? "Updating..." : "Update Progress"}
+                Update Progress
               </Button>
             </div>
           </form>

@@ -25,6 +25,76 @@ const OnboardingStatusSchema = z.object({
   experienceLevel: z.enum(["beginner", "intermediate", "advanced"]).optional(),
 });
 
+// Mapping from onboarding fitness goals to goal types with default values
+const createDefaultGoalFromOnboarding = (fitnessGoal: string, biometrics: any) => {
+  const goalMappings = {
+    build_strength: {
+      type: "strength_gain",
+      unit: "kg",
+      defaultTarget: 20, // +20kg strength gain
+      description: "Build overall strength and power"
+    },
+    lose_weight: {
+      type: "weight_loss", 
+      unit: "kg",
+      defaultTarget: Math.max(5, Math.round(biometrics.weight * 0.1)), // 10% of current weight or min 5kg
+      description: "Achieve a healthier weight"
+    },
+    gain_muscle: {
+      type: "muscle_gain",
+      unit: "kg", 
+      defaultTarget: 5, // +5kg muscle mass
+      description: "Build lean muscle mass"
+    },
+    improve_endurance: {
+      type: "endurance_improvement",
+      unit: "minutes",
+      defaultTarget: 30, // 30 minutes of sustained activity
+      description: "Improve cardiovascular endurance"
+    },
+    general_fitness: {
+      type: "general_fitness",
+      unit: "days",
+      defaultTarget: 30, // 30 days of consistent activity
+      description: "Maintain overall health and wellness"
+    },
+    flexibility: {
+      type: "flexibility",
+      unit: "minutes",
+      defaultTarget: 20, // 20 minutes of daily stretching
+      description: "Improve flexibility and mobility"
+    },
+    sport_specific: {
+      type: "general_fitness", // Map to general fitness as fallback
+      unit: "days",
+      defaultTarget: 30,
+      description: "Sport-specific training goals"
+    }
+  };
+
+  const mapping = goalMappings[fitnessGoal as keyof typeof goalMappings] || goalMappings.general_fitness;
+  
+  console.log(`Mapping fitness goal "${fitnessGoal}" to goal type "${mapping.type}"`);
+  
+  // Calculate target date (8 weeks from now)
+  const targetDate = new Date();
+  targetDate.setDate(targetDate.getDate() + 56); // 8 weeks = 56 days
+
+  const goalData = {
+    type: mapping.type,
+    targetValue: mapping.defaultTarget,
+    unit: mapping.unit,
+    targetDate: targetDate,
+    startDate: new Date(),
+    durationWeeks: 8,
+    description: mapping.description,
+    isActive: true
+  };
+  
+  console.log("Final goal data:", goalData);
+  return goalData;
+};
+
 export const onboardingRouter = router({
   // Submit onboarding data
   submitOnboarding: protectedProcedure
@@ -60,6 +130,28 @@ export const onboardingRouter = router({
           biometrics: input.biometrics,
           updatedAt: new Date(),
         }, { merge: true });
+
+        // Create initial goal based on the first selected fitness goal
+        if (input.fitnessGoals && input.fitnessGoals.length > 0) {
+          const primaryGoal = input.fitnessGoals[0];
+          console.log("Creating goal for fitness goal:", primaryGoal);
+          
+          const goalData = createDefaultGoalFromOnboarding(primaryGoal, input.biometrics);
+          console.log("Generated goal data:", goalData);
+          
+          // Create the goal in the goals collection
+          const goalsRef = ctx.db.collection(`artifacts/fit-league-930c6/users/${ctx.auth.uid}/goals`);
+          const goalDoc = await goalsRef.add({
+            ...goalData,
+            currentValue: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+          
+          console.log("Goal created with ID:", goalDoc.id);
+        } else {
+          console.log("No fitness goals provided for goal creation");
+        }
 
         return {
           success: true,

@@ -14,7 +14,7 @@ export function OnboardingComplete() {
           You're all set! 🎉
         </h3>
         <p className="text-white/70">
-          We've personalized your Fitness League experience based on your preferences.
+          We've personalized your Fitness League experience and created your first fitness goal based on your preferences.
         </p>
       </div>
 
@@ -23,11 +23,11 @@ export function OnboardingComplete() {
         <ul className="space-y-2 text-sm text-white/70">
           <li className="flex items-center">
             <span className="w-1.5 h-1.5 bg-fitness-primary rounded-full mr-3" />
-            Explore your personalized workout recommendations
+            Check out your automatically created fitness goal
           </li>
           <li className="flex items-center">
             <span className="w-1.5 h-1.5 bg-fitness-primary rounded-full mr-3" />
-            Set your first fitness goal
+            Explore your personalized workout recommendations
           </li>
           <li className="flex items-center">
             <span className="w-1.5 h-1.5 bg-fitness-primary rounded-full mr-3" />
