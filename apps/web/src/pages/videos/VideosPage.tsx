@@ -8,7 +8,6 @@ import { VideoAnalytics, UserVideoStats } from "../../components/video/VideoAnal
 import { PlaylistPlayer } from "../../components/video/PlaylistPlayer";
 import { YouTubePlayer } from "../../components/video/YouTubePlayer";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { restFetch } from "../../utils/httpClient";
 
 export function VideosPage() {
   const navigate = useNavigate();
