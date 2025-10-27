@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { updatePlan } from "../../services/firestore/workoutsService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -30,9 +30,10 @@ export function UpdateWorkoutModal({ isOpen, onClose, workout }: UpdateWorkoutMo
     difficulty: workout.difficulty,
   });
 
-  const updateWorkoutMutation = trpc.workouts.updatePlan.useMutation({
+  const updateWorkoutMutation = useMutation({
+    mutationFn: (data: any) => updatePlan(workout.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [["workouts", "getPlans"]] });
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
       onClose();
     },
   });

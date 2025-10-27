@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Play, Search, BarChart3, List, Plus, ArrowLeft } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger } from "@fitness-league/ui";
@@ -7,7 +7,8 @@ import { PlaylistManager, WorkoutPlaylist } from "../../components/video/Playlis
 import { VideoAnalytics, UserVideoStats } from "../../components/video/VideoAnalytics";
 import { PlaylistPlayer } from "../../components/video/PlaylistPlayer";
 import { YouTubePlayer } from "../../components/video/YouTubePlayer";
-import { trpc } from "../../lib/trpc";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { restFetch } from "../../utils/httpClient";
 
 export function VideosPage() {
   const navigate = useNavigate();
@@ -16,34 +17,53 @@ export function VideosPage() {
   const [videoFilters, setVideoFilters] = useState<VideoFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  // tRPC queries and mutations
-  const { data: searchResults, isLoading: isSearching } = trpc.videos.searchVideos.useQuery({
-    query: searchQuery,
-    ...videoFilters,
+  // REST API queries and mutations
+  // Note: Video endpoints not yet implemented - these are placeholders
+  const { data: searchResults, isLoading: isSearching } = useQuery({
+    queryKey: ['videos', 'search', searchQuery, videoFilters],
+    queryFn: () => restFetch('/api/videos/search'), // Placeholder - not yet implemented
+    enabled: false, // Disabled until API is implemented
   });
 
-  const { data: playlists, refetch: refetchPlaylists } = trpc.videos.getUserPlaylists.useQuery();
-  const { data: userAnalytics } = trpc.videos.getUserAnalytics.useQuery();
+  const { data: playlists = [], refetch: refetchPlaylists } = useQuery({
+    queryKey: ['videos', 'playlists'],
+    queryFn: () => restFetch('/api/videos/playlists'), // Placeholder
+    enabled: false,
+  });
 
-  const createPlaylistMutation = trpc.videos.createPlaylist.useMutation({
+  const { data: userAnalytics } = useQuery({
+    queryKey: ['videos', 'analytics'],
+    queryFn: () => restFetch('/api/videos/analytics'), // Placeholder
+    enabled: false,
+  });
+
+  const createPlaylistMutation = useMutation({
+    mutationFn: (data: any) => restFetch('/api/videos/playlists', { method: 'POST', body: data }),
     onSuccess: () => {
       refetchPlaylists();
     },
   });
 
-  const updatePlaylistMutation = trpc.videos.updatePlaylist.useMutation({
+  const updatePlaylistMutation = useMutation({
+    mutationFn: ({ playlistId, data }: any) => 
+      restFetch(`/api/videos/playlists/${playlistId}`, { method: 'PUT', body: data }),
     onSuccess: () => {
       refetchPlaylists();
     },
   });
 
-  const deletePlaylistMutation = trpc.videos.deletePlaylist.useMutation({
+  const deletePlaylistMutation = useMutation({
+    mutationFn: (playlistId: string) => 
+      restFetch(`/api/videos/playlists/${playlistId}`, { method: 'DELETE' }),
     onSuccess: () => {
       refetchPlaylists();
     },
   });
 
-  const trackVideoMutation = trpc.videos.trackVideo.useMutation();
+  const trackVideoMutation = useMutation({
+    mutationFn: (data: any) => 
+      restFetch('/api/videos/track', { method: 'POST', body: data }),
+  });
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

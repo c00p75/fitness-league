@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "../../lib/trpc";
+import { createGoal } from "../../services/firestore/goalsService";
+import { getProfile } from "../../services/firestore/userService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -125,7 +126,10 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   const navigate = useNavigate();
   
   // Fetch user profile to get gender for image selection
-  const { data: profileData } = trpc.user.getProfile.useQuery();
+  const { data: profileData } = useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: getProfile,
+  });
   const userGender = profileData?.biometrics?.gender || 'male';
   
   const [formData, setFormData] = useState({
@@ -139,9 +143,16 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   const [showCustomTimeline, setShowCustomTimeline] = useState(false);
   const [imageLoadStates, setImageLoadStates] = useState<Record<string, boolean>>({});
 
-  const createGoalMutation = trpc.goals.createGoal.useMutation({
-    onSuccess: (newGoal) => {
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
+  const createGoalMutation = useMutation({
+    mutationFn: (data: {
+      type: string;
+      targetValue: number;
+      unit: string;
+      targetDate: Date;
+      durationWeeks: number;
+    }) => createGoal(data),
+    onSuccess: (newGoal: any) => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
       onClose();
       setFormData({ type: "", targetValue: "", unit: "", targetDate: "", durationWeeks: 8 });
       setShowCustomValue(false);

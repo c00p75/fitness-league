@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@fitness-league/ui";
 import { OnboardingInputSchema, type OnboardingInput } from "@fitness-league/shared";
-import { trpc } from "../../lib/trpc";
+import { submitOnboarding } from "../../services/firestore/onboardingService";
 import { StepIndicator } from "../../components/onboarding/StepIndicator";
 import { GoalSelection } from "../../components/onboarding/GoalSelection";
 import { ExperienceLevelSelection } from "../../components/onboarding/ExperienceLevelSelection";
@@ -56,18 +56,19 @@ export function OnboardingPage() {
 
   const watchedValues = watch();
 
-  const submitOnboardingMutation = trpc.onboarding.submitOnboarding.useMutation({
+  const submitOnboardingMutation = useMutation({
+    mutationFn: submitOnboarding,
     onSuccess: async () => {
       // Invalidate both onboarding and goals queries to ensure dashboard updates
-      queryClient.invalidateQueries({ queryKey: [["onboarding"]] });
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
+      queryClient.invalidateQueries({ queryKey: ['onboarding'] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
       
       // Refetch goals immediately to ensure fresh data
-      await queryClient.refetchQueries({ queryKey: [["goals", "getGoals"]] });
+      await queryClient.refetchQueries({ queryKey: ['goals'] });
       
       navigate("/");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setError(error.message || "Failed to save your preferences. Please try again.");
     },
   });

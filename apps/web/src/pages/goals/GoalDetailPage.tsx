@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { getGoal, updateGoalProgress, getGoals } from "../../services/firestore/goalsService";
+import { getPlans, deletePlan } from "../../services/firestore/workoutsService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Progress, Badge } from "@fitness-league/ui";
 import { Target, Calendar, TrendingUp, Plus, ArrowLeft } from "lucide-react";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -19,26 +20,34 @@ export function GoalDetailPage() {
   const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
 
   // Fetch goal details
-  const { data: goal, isLoading: goalLoading } = trpc.goals.getGoal.useQuery(
-    { goalId: goalId! },
-    { enabled: !!goalId }
-  );
+  const { data: goal, isLoading: goalLoading } = useQuery({
+    queryKey: ['goals', goalId],
+    queryFn: () => getGoal(goalId!),
+    enabled: !!goalId,
+  });
 
   // Fetch workouts for this goal
-  const { data: workouts = [], isLoading: workoutsLoading } = trpc.workouts.getPlans.useQuery(
-    { goalId: goalId! },
-    { enabled: !!goalId }
-  );
+  const { data: workouts = [], isLoading: workoutsLoading } = useQuery({
+    queryKey: ['workouts', 'plans', goalId],
+    queryFn: async () => {
+      if (!goalId) return [];
+      return getPlans(goalId);
+    },
+    enabled: !!goalId,
+  });
 
   // Fetch all goals for the PlanGenerator
-  const { data: goals = [] } = trpc.goals.getGoals.useQuery(undefined);
+  const { data: goals = [] } = useQuery({
+    queryKey: ['goals'],
+    queryFn: getGoals,
+  });
 
   // Delete workout plan mutation
-  const deleteWorkoutMutation = trpc.workouts.deletePlan.useMutation({
+  const deleteWorkoutMutation = useMutation({
+    mutationFn: deletePlan,
     onSuccess: () => {
       setDeletingWorkoutId(null);
-      // Refetch workouts to update the list
-      window.location.reload(); // Simple refresh for now
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
     },
     onError: () => {
       setDeletingWorkoutId(null);
@@ -46,9 +55,10 @@ export function GoalDetailPage() {
   });
 
   // Update goal progress mutation
-  const updateProgressMutation = trpc.goals.updateGoalProgress.useMutation({
+  const updateProgressMutation = useMutation({
+    mutationFn: ({ goalId, currentValue }: { goalId: string; currentValue: number }) =>
+      updateGoalProgress(goalId, currentValue),
     onSuccess: () => {
-      // Refetch goal data to update UI
       queryClient.invalidateQueries();
     },
   });
@@ -56,18 +66,18 @@ export function GoalDetailPage() {
   const handleIncrementProgress = async () => {
     if (!goal) return;
     const newValue = Math.min(((goal as any).currentValue || 0) + 1, (goal as any).targetValue || 0);
-    await updateProgressMutation.mutateAsync({ 
-      goalId: goalId!, 
-      currentValue: newValue 
+    await updateProgressMutation.mutateAsync({
+      goalId: goalId!,
+      currentValue: newValue
     });
   };
 
   const handleDecrementProgress = async () => {
     if (!goal) return;
     const newValue = Math.max(((goal as any).currentValue || 0) - 1, 0);
-    await updateProgressMutation.mutateAsync({ 
-      goalId: goalId!, 
-      currentValue: newValue 
+    await updateProgressMutation.mutateAsync({
+      goalId: goalId!,
+      currentValue: newValue
     });
   };
 
@@ -79,7 +89,7 @@ export function GoalDetailPage() {
   const handleDeleteWorkout = async (workoutId: string) => {
     if (window.confirm("Are you sure you want to delete this workout plan? This action cannot be undone.")) {
       setDeletingWorkoutId(workoutId);
-      await deleteWorkoutMutation.mutateAsync({ planId: workoutId });
+      await deleteWorkoutMutation.mutateAsync(workoutId);
     }
   };
 

@@ -1,6 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Progress } from "@fitness-league/ui";
 import { useAuth } from "../../hooks/useAuth";
-import { trpc } from "../../lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { getGoals } from "../../services/firestore/goalsService";
+import { getProfile } from "../../services/firestore/userService";
+import { getPlans } from "../../services/firestore/workoutsService";
 import { Trophy, Target, Calendar, TrendingUp, Plus, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -10,13 +13,22 @@ export function DashboardPage() {
   const navigate = useNavigate();
   
   // Fetch user goals
-  const { data: goals = [], isLoading: goalsLoading } = trpc.goals.getGoals.useQuery(undefined);
+  const { data: goals = [], isLoading: goalsLoading } = useQuery({
+    queryKey: ['goals'],
+    queryFn: getGoals,
+  });
   
   // Fetch user profile to get gender for image selection
-  const { data: profile } = trpc.user.getProfile.useQuery(undefined);
+  const { data: profile } = useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: getProfile,
+  });
   
   // Fetch recent workout plans
-  const { data: allPlans = [] } = trpc.workouts.getPlans.useQuery(undefined);
+  const { data: allPlans = [] } = useQuery({
+    queryKey: ['workouts', 'plans'],
+    queryFn: async () => getPlans(),
+  });
   const recentPlans = allPlans.slice(0, 3);
 
   // Carousel state for multiple goals

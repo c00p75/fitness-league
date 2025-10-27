@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "../../lib/trpc";
+import { generatePlan } from "../../services/firestore/workoutsService";
+import { getOnboardingStatus } from "../../services/firestore/onboardingService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Label } from "@fitness-league/ui";
@@ -158,8 +159,11 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
   const [step, setStep] = useState(1);
   
   // Fetch user's onboarding data to get default fitness level
-  const { data: onboardingData } = trpc.onboarding.getOnboardingStatus.useQuery(undefined);
-  const userFitnessLevel = onboardingData?.experienceLevel || "beginner";
+  const { data: onboardingData } = useQuery({
+    queryKey: ['onboarding', 'status'],
+    queryFn: getOnboardingStatus,
+  });
+  const userFitnessLevel = (onboardingData as any)?.experienceLevel || "beginner";
   
   const [formData, setFormData] = useState({
     goalId: preSelectedGoalId || "",
@@ -262,9 +266,10 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
     }
   }, [selectedGoal, formData.focusAreas, formData.intensity, formData.useCustomName]);
 
-  const generatePlanMutation = trpc.workouts.generatePlan.useMutation({
-    onSuccess: (newPlan) => {
-      queryClient.invalidateQueries({ queryKey: [["workouts", "getPlans"]] });
+  const generatePlanMutation = useMutation({
+    mutationFn: generatePlan,
+    onSuccess: (newPlan: any) => {
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
       onClose();
       setStep(1);
       setFormData({ 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useMutation } from "@tanstack/react-query";
+import { updateGoalProgress } from "../../services/firestore/goalsService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -42,9 +43,11 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
     setIsCompleted(false);
   }, [goal]);
 
-  const updateProgressMutation = trpc.goals.updateGoalProgress.useMutation({
+  const updateProgressMutation = useMutation({
+    mutationFn: ({ goalId, currentValue }: { goalId: string; currentValue: number }) =>
+      updateGoalProgress(goalId, currentValue),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
       
       // Show different success messages based on progress
       const progressPercentage = (variables.currentValue / goal.targetValue) * 100;

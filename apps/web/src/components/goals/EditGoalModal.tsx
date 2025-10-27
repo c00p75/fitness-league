@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
+import { updateGoal } from "../../services/firestore/goalsService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -47,9 +47,10 @@ export function EditGoalModal({ isOpen, onClose, goal }: EditGoalModalProps) {
     });
   }, [goal]);
 
-  const updateGoalMutation = trpc.goals.updateGoal.useMutation({
+  const updateGoalMutation = useMutation({
+    mutationFn: (data: any) => updateGoal(goal.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
       onClose();
     },
   });

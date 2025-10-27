@@ -8,7 +8,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { GoalSelection } from "../../components/onboarding/GoalSelection";
 import { ExperienceLevelSelection } from "../../components/onboarding/ExperienceLevelSelection";
 import { WorkoutPreferencesForm } from "../../components/onboarding/WorkoutPreferencesForm";
-import { trpc } from "../../lib/trpc";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { getProfile, updateProfile } from "../../services/firestore/userService";
 import toast from "react-hot-toast";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { ArrowLeft } from "lucide-react";
@@ -21,7 +22,10 @@ export function ProfilePage() {
   const [activeTab, setActiveTab] = useState<TabType>("personal");
 
   // Fetch profile data with onboarding data
-  const { data: profileData, isLoading: profileLoading, refetch } = trpc.user.getProfile.useQuery();
+  const { data: profileData, isLoading: profileLoading, refetch } = useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: getProfile,
+  });
 
   const {
     register,
@@ -29,6 +33,8 @@ export function ProfilePage() {
     control,
     formState: { errors, isDirty },
     reset,
+    setValue,
+    watch,
   } = useForm<UpdateProfileInput>({
     resolver: zodResolver(UpdateProfileSchema),
     defaultValues: {
@@ -74,12 +80,14 @@ export function ProfilePage() {
   }, [profileData, reset]);
 
   // Update profile mutation
-  const updateProfileMutation = trpc.user.updateProfile.useMutation({
+  const updateProfileMutation = useMutation({
+    mutationFn: (data: UpdateProfileInput) => 
+      updateProfile(data),
     onSuccess: () => {
       toast.success("Profile updated successfully!");
       refetch();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast.error(error.message || "Failed to update profile. Please try again.");
     },
   });
@@ -102,7 +110,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="mx-auto space-y-8">
       <div className="flex items-start flex-col">
         <Button
           variant="ghost"
@@ -119,7 +127,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto">
         {/* Main Content */}
         <div className="space-y-6">
           {/* Tab Navigation */}
@@ -271,7 +279,7 @@ export function ProfilePage() {
                 {activeTab === "goals" && (
                   <>
                     <div className="space-y-6">
-                      <div>
+                      <div className="space-y-3"> 
                         <Label className="text-base font-medium">Fitness Goal</Label>
                         <Controller
                           name="fitnessGoal"
@@ -286,7 +294,7 @@ export function ProfilePage() {
                         />
                       </div>
 
-                      <div>
+                      <div className="space-y-3"> 
                         <Label className="text-base font-medium">Experience Level</Label>
                         <Controller
                           name="experienceLevel"
@@ -312,6 +320,8 @@ export function ProfilePage() {
                       control={control}
                       render={({ field }) => (
                         <WorkoutPreferencesForm
+                          setValue={setValue}
+                          watch={watch}
                           register={(name: string) => ({
                             ...register(name as any),
                             onChange: (e: any) => {

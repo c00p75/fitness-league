@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { getGoals, deleteGoal, updateGoalProgress } from "../../services/firestore/goalsService";
 import { Button } from "@fitness-league/ui";
 import { Plus, Target, TrendingUp, Calendar, ArrowLeft } from "lucide-react";
 import { CreateGoalModal } from "../../components/goals/CreateGoalModal";
@@ -21,25 +21,31 @@ export function GoalsPage() {
   } | null>(null);
 
   // Fetch user goals
-  const { data: goals = [], isLoading } = trpc.goals.getGoals.useQuery(undefined);
+  const { data: goals = [], isLoading } = useQuery({
+    queryKey: ['goals'],
+    queryFn: getGoals,
+  });
 
   // Delete goal mutation
-  const deleteGoalMutation = trpc.goals.deleteGoal.useMutation({
+  const deleteGoalMutation = useMutation({
+    mutationFn: deleteGoal,
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
   // Update goal progress mutation
-  const updateProgressMutation = trpc.goals.updateGoalProgress.useMutation({
+  const updateProgressMutation = useMutation({
+    mutationFn: ({ goalId, currentValue }: { goalId: string; currentValue: number }) =>
+      updateGoalProgress(goalId, currentValue),
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
   const handleDeleteGoal = async (goalId: string) => {
     if (window.confirm("Are you sure you want to delete this goal?")) {
-      await deleteGoalMutation.mutateAsync({ goalId });
+      await deleteGoalMutation.mutateAsync(goalId);
     }
   };
 

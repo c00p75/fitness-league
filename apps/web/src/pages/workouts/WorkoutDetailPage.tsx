@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { trpc } from "../../lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { getPlans } from "../../services/firestore/workoutsService";
+import { getGoal } from "../../services/firestore/goalsService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from "@fitness-league/ui";
 import { Clock, Dumbbell, Calendar, Target, Eye, Activity, Check, TrendingUp, CheckCircle, ArrowLeft, Star } from "lucide-react";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
@@ -15,16 +17,22 @@ export function WorkoutDetailPage() {
   const [isWorkoutCompleted, setIsWorkoutCompleted] = useState(false);
 
   // Fetch workout details
-  const { data: workout, isLoading: workoutLoading } = trpc.workouts.getPlan.useQuery(
-    { planId: workoutId! },
-    { enabled: !!workoutId }
-  );
+  const { data: workout, isLoading: workoutLoading } = useQuery({
+    queryKey: ['workouts', workoutId],
+    queryFn: async () => {
+      if (!goalId || !workoutId) return null;
+      const plans = await getPlans(goalId);
+      return plans.find((p: any) => p.id === workoutId);
+    },
+    enabled: !!workoutId,
+  });
 
   // Fetch goal details
-  const { data: goal, isLoading: goalLoading } = trpc.goals.getGoal.useQuery(
-    { goalId: goalId! },
-    { enabled: !!goalId }
-  );
+  const { data: goal, isLoading: goalLoading } = useQuery({
+    queryKey: ['goals', goalId],
+    queryFn: () => getGoal(goalId!),
+    enabled: !!goalId,
+  });
 
 
   // Handle goal updates from workout completion
@@ -35,13 +43,9 @@ export function WorkoutDetailPage() {
     try {
       // This is a placeholder - in a real app, you'd have a session ID
       // For now, we'll just update the goal directly
-      const goalUpdateMutation = trpc.goals.updateGoalProgress.useMutation();
-      
       for (const goalUpdate of goalUpdates) {
-        await goalUpdateMutation.mutateAsync({
-          goalId: goalUpdate.goalId,
-          currentValue: goalUpdate.progressValue,
-        });
+        const { updateGoalProgress } = await import('../../services/firestore/goalsService');
+        await updateGoalProgress(goalUpdate.goalId, goalUpdate.progressValue);
       }
       
       setIsWorkoutCompleted(true);

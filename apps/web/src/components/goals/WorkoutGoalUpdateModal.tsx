@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useQuery } from "@tanstack/react-query";
+import { getGoal } from "../../services/firestore/goalsService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -25,20 +25,20 @@ const goalTypeLabels = {
 };
 
 export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: WorkoutGoalUpdateModalProps) {
-  const queryClient = useQueryClient();
   const [progressValue, setProgressValue] = useState("");
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Fetch goal details
-  const { data: goal, isLoading: goalLoading } = trpc.goals.getGoal.useQuery(
-    { goalId },
-    { enabled: !!goalId && isOpen }
-  );
+  const { data: goal, isLoading: goalLoading } = useQuery({
+    queryKey: ['goals', goalId],
+    queryFn: () => getGoal(goalId),
+    enabled: !!goalId && isOpen,
+  });
 
   // Update form when goal prop changes
   useEffect(() => {
-    if (goal) {
-      setProgressValue(goal.currentValue.toString());
+    if (goal && typeof goal === 'object' && 'currentValue' in goal) {
+      setProgressValue((goal as any).currentValue.toString());
       setIsCompleted(false);
     }
   }, [goal]);
