@@ -21,6 +21,9 @@ importers:
       '@fitness-league/env':
         specifier: workspace:*
         version: link:../../packages/env
+      '@fitness-league/seeding':
+        specifier: workspace:*
+        version: link:../../packages/seeding
       '@fitness-league/shared':
         specifier: workspace:*
         version: link:../../packages/shared
