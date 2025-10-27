@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getPlans } from "../../services/firestore/workoutsService";
+import { getPlans, getWorkoutPlanById } from "../../services/firestore/workoutsService";
 import { getGoal } from "../../services/firestore/goalsService";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, Button, Badge } from "@fitness-league/ui";
 import { Clock, Dumbbell, Calendar, Target, Eye, Activity, Check, TrendingUp, CheckCircle, ArrowLeft, Star } from "lucide-react";
@@ -20,9 +20,17 @@ export function WorkoutDetailPage() {
   const { data: workout, isLoading: workoutLoading } = useQuery({
     queryKey: ['workouts', workoutId],
     queryFn: async () => {
-      if (!goalId || !workoutId) return null;
-      const plans = await getPlans(goalId);
-      return plans.find((p: any) => p.id === workoutId);
+      if (!workoutId) return null;
+      // First try to get by ID directly
+      const directPlan = await getWorkoutPlanById(workoutId);
+      if (directPlan) return directPlan;
+      
+      // If not found and goalId exists, try filtering by goal
+      if (goalId) {
+        const plans = await getPlans(goalId);
+        return plans.find((p: any) => p.id === workoutId);
+      }
+      return null;
     },
     enabled: !!workoutId,
   });

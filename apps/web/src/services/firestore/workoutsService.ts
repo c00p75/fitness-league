@@ -210,3 +210,22 @@ export async function getPlan(planId: string) {
   };
 }
 
+/**
+ * Get workout plan by ID without filtering by goal
+ */
+export async function getWorkoutPlanById(planId: string) {
+  const uid = await getUserId();
+  
+  const planRef = doc(db, `artifacts/${PROJECT_ID}/users/${uid}/workoutPlans/${planId}`);
+  const planDoc = await getDoc(planRef);
+  
+  if (!planDoc.exists()) {
+    return null;
+  }
+  
+  return {
+    id: planDoc.id,
+    ...planDoc.data() as any
+  };
+}
+

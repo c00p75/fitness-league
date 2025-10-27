@@ -16,53 +16,41 @@ export function VideosPage() {
   const [videoFilters, setVideoFilters] = useState<VideoFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
 
-  // REST API queries and mutations
-  // Note: Video endpoints not yet implemented - these are placeholders
-  const { data: searchResults, isLoading: isSearching } = useQuery({
-    queryKey: ['videos', 'search', searchQuery, videoFilters],
-    queryFn: () => restFetch('/api/videos/search'), // Placeholder - not yet implemented
-    enabled: false, // Disabled until API is implemented
-  });
-
-  const { data: playlists = [], refetch: refetchPlaylists } = useQuery({
-    queryKey: ['videos', 'playlists'],
-    queryFn: () => restFetch('/api/videos/playlists'), // Placeholder
-    enabled: false,
-  });
-
-  const { data: userAnalytics } = useQuery({
-    queryKey: ['videos', 'analytics'],
-    queryFn: () => restFetch('/api/videos/analytics'), // Placeholder
-    enabled: false,
-  });
-
+  // Note: Video features not yet implemented
+  const searchResults: any[] = [];
+  const isSearching = false;
+  const playlists: any[] = [];
+  const userAnalytics: any = null;
+  
   const createPlaylistMutation = useMutation({
-    mutationFn: (data: any) => restFetch('/api/videos/playlists', { method: 'POST', body: data }),
-    onSuccess: () => {
-      refetchPlaylists();
+    mutationFn: async (data: any) => {
+      console.log('Create playlist - not yet implemented');
+      return Promise.resolve();
     },
   });
 
   const updatePlaylistMutation = useMutation({
-    mutationFn: ({ playlistId, data }: any) => 
-      restFetch(`/api/videos/playlists/${playlistId}`, { method: 'PUT', body: data }),
-    onSuccess: () => {
-      refetchPlaylists();
+    mutationFn: async ({ playlistId, data }: any) => {
+      console.log('Update playlist - not yet implemented');
+      return Promise.resolve();
     },
   });
 
   const deletePlaylistMutation = useMutation({
-    mutationFn: (playlistId: string) => 
-      restFetch(`/api/videos/playlists/${playlistId}`, { method: 'DELETE' }),
-    onSuccess: () => {
-      refetchPlaylists();
+    mutationFn: async (playlistId: string) => {
+      console.log('Delete playlist - not yet implemented');
+      return Promise.resolve();
     },
   });
 
   const trackVideoMutation = useMutation({
-    mutationFn: (data: any) => 
-      restFetch('/api/videos/track', { method: 'POST', body: data }),
+    mutationFn: async (data: any) => {
+      console.log('Track video - not yet implemented');
+      return Promise.resolve();
+    },
   });
+  
+  const refetchPlaylists = () => {};
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
