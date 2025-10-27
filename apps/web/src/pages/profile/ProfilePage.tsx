@@ -102,7 +102,7 @@ export function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="mx-auto space-y-8">
       <div className="flex items-start flex-col">
         <Button
           variant="ghost"
@@ -119,7 +119,7 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Main Content */}
         <div className="space-y-6">
           {/* Tab Navigation */}
@@ -270,9 +270,9 @@ export function ProfilePage() {
                 {/* Goals Tab */}
                 {activeTab === "goals" && (
                   <>
-                    <div className="space-y-6">
-                      <div>
-                        <Label className="text-base font-medium">Fitness Goal</Label>
+                    <div className="space-y-10">
+                      <div className="space-y-3">
+                        <Label className="text-lg font-bold">Fitness Goal</Label>
                         <Controller
                           name="fitnessGoal"
                           control={control}
@@ -286,8 +286,8 @@ export function ProfilePage() {
                         />
                       </div>
 
-                      <div>
-                        <Label className="text-base font-medium">Experience Level</Label>
+                      <div className="space-y-3">
+                        <Label className="text-lg font-bold">Experience Level</Label>
                         <Controller
                           name="experienceLevel"
                           control={control}
