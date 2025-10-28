@@ -79,17 +79,27 @@ export async function updateProfile(updates: {
   const profileRef = doc(db, `artifacts/${PROJECT_ID}/users/${uid}/profile/main`);
   const profileDoc = await getDoc(profileRef);
   
+  // If profile doesn't exist, create it instead of erroring
   if (!profileDoc.exists()) {
-    throw new Error('User profile not found');
-  }
-  
-  // Update profile data
-  if (Object.keys(profileData).length > 0) {
-    const updateData = {
-      ...profileData,
+    const user = auth.currentUser;
+    const newProfileData = {
+      userId: uid,
+      email: user?.email || '',
+      displayName: profileData.displayName || user?.displayName || '',
+      biometrics: profileData.biometrics || {},
+      createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
     };
-    await updateDoc(profileRef, updateData);
+    await setDoc(profileRef, newProfileData);
+  } else {
+    // Update profile data
+    if (Object.keys(profileData).length > 0) {
+      const updateData = {
+        ...profileData,
+        updatedAt: Timestamp.now(),
+      };
+      await updateDoc(profileRef, updateData);
+    }
   }
   
   // Update onboarding data if provided
