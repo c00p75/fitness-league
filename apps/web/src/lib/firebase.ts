@@ -24,7 +24,7 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 
 // Connect to emulators in development
-if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+if (typeof process !== 'undefined' && (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV)) {
   // Only connect to emulators if not already connected
   if (!auth.emulatorConfig) {
     connectAuthEmulator(auth, "http://localhost:9098");
