@@ -7,7 +7,7 @@ import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Label } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
-import { X, Target, Calendar, Users, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
+import { X, Target, Users, ArrowRight, ArrowLeft } from "lucide-react";
 
 interface PlanGeneratorProps {
   isOpen: boolean;
@@ -30,26 +30,27 @@ const frequencyOptions = [
   { value: 5, label: "5x per week", description: "High intensity" },
 ];
 
-const fitnessLevelOptions = [
-  { 
-    value: "beginner", 
-    label: "Beginner", 
-    icon: "🌱",
-    description: "New to fitness" 
-  },
-  { 
-    value: "intermediate", 
-    label: "Intermediate", 
-    icon: "💪",
-    description: "Some experience" 
-  },
-  { 
-    value: "advanced", 
-    label: "Advanced", 
-    icon: "🏆",
-    description: "Experienced athlete" 
-  },
-];
+// Removed unused fitnessLevelOptions
+// const fitnessLevelOptions = [
+//   { 
+//     value: "beginner", 
+//     label: "Beginner", 
+//     icon: "🌱",
+//     description: "New to fitness" 
+//   },
+//   { 
+//     value: "intermediate", 
+//     label: "Intermediate", 
+//     icon: "💪",
+//     description: "Some experience" 
+//   },
+//   { 
+//     value: "advanced", 
+//     label: "Advanced", 
+//     icon: "🏆",
+//     description: "Experienced athlete" 
+//   },
+// ];
 
 const durationOptions = [
   { value: 15, label: "15 min", icon: "⚡", description: "Quick workout" },
@@ -180,7 +181,7 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
   // Determine if we need goal selection step
   const needsGoalSelection = !preSelectedGoalId && goals.length > 1;
   const selectedGoal = goals.find(g => g.id === formData.goalId);
-  const hasFocusOptions = selectedGoal && goalFocusOptions[selectedGoal.type];
+  // Removed unused hasFocusOptions
 
   // Generate smart workout plan name suggestions
   const generateNameSuggestions = () => {
