@@ -18,6 +18,9 @@
   "devDependencies": {
     "@fitness-league/tsconfig": "workspace:*",
     "@types/node": "^20.11.17",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.56.0",
     "typescript": "^5.3.3",
     "vite": "^5.4.21"
   }
