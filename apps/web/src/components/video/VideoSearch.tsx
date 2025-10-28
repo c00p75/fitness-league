@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { Search, Filter, X, Clock, Dumbbell, Target } from "lucide-react";
 import { Button, Input, Card, CardContent, CardHeader, CardTitle } from "@fitness-league/ui";
 import { cn } from "@fitness-league/ui";

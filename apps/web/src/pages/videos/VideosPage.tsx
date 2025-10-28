@@ -1,26 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, Search, BarChart3, List, Plus, ArrowLeft } from "lucide-react";
+import { Play, Search, BarChart3, List, ArrowLeft } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger } from "@fitness-league/ui";
 import { VideoSearch, VideoFilters } from "../../components/video/VideoSearch";
 import { PlaylistManager, WorkoutPlaylist } from "../../components/video/PlaylistManager";
-import { VideoAnalytics, UserVideoStats } from "../../components/video/VideoAnalytics";
+import { VideoAnalytics } from "../../components/video/VideoAnalytics";
 import { PlaylistPlayer } from "../../components/video/PlaylistPlayer";
-import { YouTubePlayer } from "../../components/video/YouTubePlayer";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 
 export function VideosPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("search");
   const [selectedPlaylist, setSelectedPlaylist] = useState<WorkoutPlaylist | null>(null);
   const [videoFilters, setVideoFilters] = useState<VideoFilters>({});
-  const [searchQuery, setSearchQuery] = useState("");
+  // Removed unused searchQuery
 
   // Note: Video features not yet implemented
   const searchResults: any[] = [];
   const isSearching = false;
   const playlists: any[] = [];
-  const userAnalytics: any = null;
+  // Removed unused data variables
   
   const createPlaylistMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -50,10 +49,10 @@ export function VideosPage() {
     },
   });
   
-  const refetchPlaylists = () => {};
+  // Removed unused refetchPlaylists
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
+    console.log('Search query:', query);
   };
 
   const handleFilter = (filters: VideoFilters) => {
@@ -70,7 +69,7 @@ export function VideosPage() {
 
   const handleDeletePlaylist = (id: string) => {
     if (window.confirm("Are you sure you want to delete this playlist?")) {
-      deletePlaylistMutation.mutate({ playlistId: id });
+      deletePlaylistMutation.mutate(id);
     }
   };
 
@@ -162,7 +161,7 @@ export function VideosPage() {
               <h2 className="text-xl font-semibold">Search Results</h2>
               {searchResults && (
                 <span className="text-sm text-gray-600">
-                  {searchResults.total} videos found
+                  {searchResults.length} videos found
                 </span>
               )}
             </div>
@@ -179,17 +178,17 @@ export function VideosPage() {
                   </Card>
                 ))}
               </div>
-            ) : searchResults?.exercises ? (
+            ) : searchResults?.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchResults.exercises.map((exercise) => (
-                  <Card key={exercise.id} className="group hover:shadow-lg transition-shadow">
+                {searchResults.map((video: any) => (
+                  <Card key={video.id} className="group hover:shadow-lg transition-shadow">
                     <CardContent className="p-0">
                       {/* Video Thumbnail */}
-                      {exercise.youtubeVideoId && (
+                      {video.youtubeVideoId && (
                         <div className="relative">
                           <img
-                            src={`https://img.youtube.com/vi/${exercise.youtubeVideoId}/hqdefault.jpg`}
-                            alt={exercise.name}
+                            src={`https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`}
+                            alt={video.name}
                             className="w-full h-32 object-cover rounded-t-lg"
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-lg flex items-center justify-center">
@@ -203,20 +202,20 @@ export function VideosPage() {
 
                       {/* Exercise Info */}
                       <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-1">{exercise.name}</h3>
+                        <h3 className="font-semibold text-lg mb-1">{video.name}</h3>
                         <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                          {exercise.description}
+                          {video.description}
                         </p>
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                              {exercise.category}
+                              {video.category}
                             </span>
                             <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                              {exercise.difficulty}
+                              {video.difficulty}
                             </span>
                           </div>
-                          <span className="text-gray-500">{exercise.duration} min</span>
+                          <span className="text-gray-500">{video.duration} min</span>
                         </div>
                       </div>
                     </CardContent>
