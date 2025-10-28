@@ -1,13 +1,20 @@
 import { Card } from "@fitness-league/ui";
 import { Button } from "@fitness-league/ui";
 import { 
-  TrendingUp, 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@fitness-league/ui";
+import { 
   Calendar, 
   Edit, 
   Trash2, 
   CheckCircle,
   Clock,
-  Play
+  Play,
+  MoreVertical,
+  Star
 } from "lucide-react";
 
 interface GoalCardProps {
@@ -23,19 +30,14 @@ interface GoalCardProps {
   };
   onEdit: () => void;
   onDelete: () => void;
-  onUpdateProgress: () => void;
+  onIncrement: () => void;
+  onDecrement: () => void;
+  onMarkComplete: () => void;
   onStartWorkout: () => void;
   isDeleting?: boolean;
 }
 
-const goalTypeIcons = {
-  weight_loss: "🔥",
-  muscle_gain: "💪",
-  flexibility: "🧘",
-  general_fitness: "🏃",
-  endurance: "⚡",
-  strength: "🏋️",
-};
+// Removed emoji icons for cleaner design
 
 const goalTypeLabels = {
   weight_loss: "Weight Loss",
@@ -46,7 +48,7 @@ const goalTypeLabels = {
   strength: "Strength",
 };
 
-export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onStartWorkout, isDeleting }: GoalCardProps) {
+export function GoalCard({ goal, onEdit, onDelete, onIncrement, onDecrement, onMarkComplete, onStartWorkout, isDeleting }: GoalCardProps) {
   const progress = Math.min((goal.currentValue / goal.targetValue) * 100, 100);
   const isCompleted = goal.currentValue >= goal.targetValue;
   const daysRemaining = Math.ceil((goal.targetDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
@@ -63,7 +65,6 @@ export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onStartWork
   const getStatusIcon = () => {
     if (isCompleted) return <CheckCircle className="w-5 h-5 text-green-500" />;
     if (isOverdue) return <Clock className="w-5 h-5 text-red-500" />;
-    return <TrendingUp className="w-5 h-5 text-fitness-primary" />;
   };
 
   return (
@@ -71,9 +72,6 @@ export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onStartWork
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center">
-          <div className="text-2xl mr-3">
-            {goalTypeIcons[goal.type as keyof typeof goalTypeIcons] || "🎯"}
-          </div>
           <div>
             <h3 className="font-semibold text-fitness-foreground">
               {goalTypeLabels[goal.type as keyof typeof goalTypeLabels] || goal.type}
@@ -83,37 +81,65 @@ export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onStartWork
             </p>
           </div>
         </div>
-        <div className="flex items-center space-x-1">
+        <div className="flex items-center space-x-2">
           {getStatusIcon()}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onEdit}
-            className="h-8 w-8 p-0"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onDelete}
-            disabled={isDeleting}
-            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+              >
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>
+                <Edit className="w-4 h-4 mr-2" />
+                Update Goal
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={onDelete}
+                disabled={isDeleting}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Goal
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Progress Bar */}
       <div className="mb-4">
-        <div className="flex justify-between items-center mb-2">
+        <div className="flex justify-between items-center mb-3">
           <span className="text-sm font-medium text-fitness-foreground">
             Progress
           </span>
-          <span className="text-sm text-fitness-muted-foreground">
-            {Math.round(progress)}%
-          </span>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onDecrement}
+              className="h-6 w-6 p-0 bg-[#212121] hover:bg-[#262626]"
+              disabled={goal.currentValue <= 0}
+            >
+              -
+            </Button>
+            <span className="text-sm text-fitness-muted-foreground">
+              {Math.round(progress)}%
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={onIncrement}
+              className="h-6 w-6 p-0 bg-[#212121] hover:bg-[#262626]"
+              disabled={isCompleted}
+            >
+              +
+            </Button>
+          </div>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
@@ -191,10 +217,10 @@ export function GoalCard({ goal, onEdit, onDelete, onUpdateProgress, onStartWork
             variant="outline"
             size="sm"
             className="w-full"
-            onClick={onUpdateProgress}
+            onClick={onMarkComplete}
           >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            Update Progress
+            <Star className="w-4 h-4 mr-2" />
+            Mark as Complete
           </Button>
         )}
       </div>

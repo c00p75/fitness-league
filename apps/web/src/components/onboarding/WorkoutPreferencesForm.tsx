@@ -1,8 +1,11 @@
-import { Input, Label, Checkbox } from "@fitness-league/ui";
+import { Input, Label, Button, Card, CardContent } from "@fitness-league/ui";
+import { useState, useEffect } from "react";
 
 interface WorkoutPreferencesFormProps {
   register: any;
   errors: any;
+  setValue: any;
+  watch: any;
 }
 
 const equipmentOptions = [
@@ -22,35 +25,150 @@ const timeOptions = [
   { id: "flexible", label: "Flexible", description: "Any time works" },
 ];
 
-export function WorkoutPreferencesForm({ register, errors }: WorkoutPreferencesFormProps) {
+export function WorkoutPreferencesForm({ register, errors, setValue, watch }: WorkoutPreferencesFormProps) {
+  const [duration, setDuration] = useState(30);
+  const [frequency, setFrequency] = useState(3);
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>([]);
+  const [selectedTime, setSelectedTime] = useState("evening");
+
+  // Watch form values to sync with local state
+  const watchedDuration = watch("workoutPreferences.preferredDuration");
+  const watchedFrequency = watch("workoutPreferences.weeklyFrequency");
+  const watchedEquipment = watch("workoutPreferences.availableEquipment");
+  const watchedTime = watch("workoutPreferences.preferredTimeOfDay");
+
+  // Sync local state with form values
+  useEffect(() => {
+    if (watchedDuration !== undefined && watchedDuration !== duration) {
+      setDuration(watchedDuration);
+    }
+  }, [watchedDuration, duration]);
+
+  useEffect(() => {
+    if (watchedFrequency !== undefined && watchedFrequency !== frequency) {
+      setFrequency(watchedFrequency);
+    }
+  }, [watchedFrequency, frequency]);
+
+  useEffect(() => {
+    if (watchedEquipment !== undefined && Array.isArray(watchedEquipment)) {
+      setSelectedEquipment(watchedEquipment);
+    }
+  }, [watchedEquipment]);
+
+  useEffect(() => {
+    if (watchedTime !== undefined && watchedTime !== selectedTime) {
+      setSelectedTime(watchedTime);
+    }
+  }, [watchedTime, selectedTime]);
+
+  const adjustValue = (field: string, delta: number) => {
+    if (field === 'duration') {
+      const newDuration = Math.max(15, Math.min(180, duration + delta));
+      setDuration(newDuration);
+      setValue("workoutPreferences.preferredDuration", newDuration);
+    } else if (field === 'frequency') {
+      const newFrequency = Math.max(1, Math.min(7, frequency + delta));
+      setFrequency(newFrequency);
+      setValue("workoutPreferences.weeklyFrequency", newFrequency);
+    }
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    if (field === 'duration') {
+      const clampedValue = Math.max(15, Math.min(180, numValue));
+      setDuration(clampedValue);
+      setValue("workoutPreferences.preferredDuration", clampedValue);
+    } else if (field === 'frequency') {
+      const clampedValue = Math.max(1, Math.min(7, numValue));
+      setFrequency(clampedValue);
+      setValue("workoutPreferences.weeklyFrequency", clampedValue);
+    }
+  };
+
+  const toggleEquipment = (equipmentId: string) => {
+    const newSelection = selectedEquipment.includes(equipmentId)
+      ? selectedEquipment.filter(id => id !== equipmentId)
+      : [...selectedEquipment, equipmentId];
+    
+    setSelectedEquipment(newSelection);
+    setValue("workoutPreferences.availableEquipment", newSelection);
+  };
+
+  const selectTime = (timeId: string) => {
+    setSelectedTime(timeId);
+    setValue("workoutPreferences.preferredTimeOfDay", timeId);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
         <div className="space-y-2">
-          <Label htmlFor="preferredDuration">Preferred Workout Duration (minutes)</Label>
-          <Input
-            id="preferredDuration"
-            type="number"
-            placeholder="30"
-            {...register("workoutPreferences.preferredDuration", { valueAsNumber: true })}
-            className={errors?.preferredDuration ? "border-destructive" : ""}
-          />
+          <Label className="text-center w-full block mb-3" htmlFor="preferredDuration">Preferred Workout Duration (minutes)</Label>
+          <div className="flex items-center space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => adjustValue('duration', -5)}
+              className="w-10 h-10 scale-125 rounded-full flex items-center justify-center hover:bg-fitness-primary/20"
+            >
+              −
+            </Button>
+            <Input
+              id="preferredDuration"
+              type="number"
+              value={duration}
+              onChange={(e) => handleInputChange('duration', e.target.value)}
+              {...register("workoutPreferences.preferredDuration", { valueAsNumber: true })}
+              className={`py-8 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.preferredDuration ? "border-destructive" : ""}`}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => adjustValue('duration', 5)}
+              className="w-10 h-10 scale-125 rounded-full flex items-center justify-center hover:bg-fitness-primary/20"
+            >
+              +
+            </Button>
+          </div>
           {errors?.preferredDuration && (
             <p className="text-sm text-destructive">{errors.preferredDuration.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="weeklyFrequency">Workouts per Week</Label>
-          <Input
-            id="weeklyFrequency"
-            type="number"
-            placeholder="3"
-            min="1"
-            max="7"
-            {...register("workoutPreferences.weeklyFrequency", { valueAsNumber: true })}
-            className={errors?.weeklyFrequency ? "border-destructive" : ""}
-          />
+          <Label className="text-center w-full block mb-3" htmlFor="weeklyFrequency">Workouts per Week</Label>
+          <div className="flex items-center space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => adjustValue('frequency', -1)}
+              className="w-10 h-10 scale-125 rounded-full flex items-center justify-center hover:bg-fitness-primary/20"
+            >
+              −
+            </Button>
+            <Input
+              id="weeklyFrequency"
+              type="number"
+              value={frequency}
+              onChange={(e) => handleInputChange('frequency', e.target.value)}
+              {...register("workoutPreferences.weeklyFrequency", { valueAsNumber: true })}
+              className={`py-8 text-center [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] ${errors?.weeklyFrequency ? "border-destructive" : ""}`}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => adjustValue('frequency', 1)}
+              className="w-10 h-10 scale-125 rounded-full flex items-center justify-center hover:bg-fitness-primary/20"
+            >
+              +
+            </Button>
+          </div>
           {errors?.weeklyFrequency && (
             <p className="text-sm text-destructive">{errors.weeklyFrequency.message}</p>
           )}
@@ -58,24 +176,27 @@ export function WorkoutPreferencesForm({ register, errors }: WorkoutPreferencesF
       </div>
 
       <div className="space-y-4">
-        <Label>Available Equipment</Label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {equipmentOptions.map((equipment) => (
-            <div key={equipment.id} className="flex items-start space-x-3">
-              <Checkbox
-                id={equipment.id}
-                value={equipment.id}
-                {...register("workoutPreferences.availableEquipment")}
-                className="mt-1"
-              />
-              <div className="flex-1">
-                <Label htmlFor={equipment.id} className="text-sm font-medium">
-                  {equipment.label}
-                </Label>
-                <p className="text-xs text-white/60">{equipment.description}</p>
-              </div>
-            </div>
-          ))}
+        <Label className="text-center w-full block mb-5 mt-10 text-lg">Select Available Equipment</Label>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {equipmentOptions.map((equipment) => {
+            const isSelected = selectedEquipment.includes(equipment.id);
+            return (
+              <Card
+                key={equipment.id}
+                className={`cursor-pointer transition-all ${
+                  isSelected
+                    ? "ring-2 ring-fitness-primary bg-fitness-primary/10"
+                    : "bg-black hover:ring-2 hover:ring-fitness-primary"
+                }`}
+                onClick={() => toggleEquipment(equipment.id)}
+              >
+                <CardContent className="p-4 text-center">
+                  <h3 className="font-semibold text-white mb-1">{equipment.label}</h3>
+                  <p className="text-xs text-white/60">{equipment.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
         {errors?.availableEquipment && (
           <p className="text-sm text-destructive">{errors.availableEquipment.message}</p>
@@ -83,25 +204,27 @@ export function WorkoutPreferencesForm({ register, errors }: WorkoutPreferencesF
       </div>
 
       <div className="space-y-4">
-        <Label>Preferred Workout Time</Label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {timeOptions.map((time) => (
-            <div key={time.id} className="flex items-center space-x-3">
-              <input
-                type="radio"
-                id={time.id}
-                value={time.id}
-                {...register("workoutPreferences.preferredTimeOfDay")}
-                className="w-4 h-4 text-fitness-primary"
-              />
-              <div>
-                <Label htmlFor={time.id} className="text-sm font-medium">
-                  {time.label}
-                </Label>
-                <p className="text-xs text-white/60">{time.description}</p>
-              </div>
-            </div>
-          ))}
+        <Label className="text-center w-full block mb-5 mt-10 text-lg">Preferred Workout Time</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {timeOptions.map((time) => {
+            const isSelected = selectedTime === time.id;
+            return (
+              <Card
+                key={time.id}
+                className={`cursor-pointer transition-all ${
+                  isSelected
+                    ? "ring-2 ring-fitness-primary bg-fitness-primary/10"
+                    : "bg-black hover:ring-2 hover:ring-fitness-primary"
+                }`}
+                onClick={() => selectTime(time.id)}
+              >
+                <CardContent className="p-4 text-center">
+                  <h3 className="font-semibold text-white mb-1">{time.label}</h3>
+                  <p className="text-xs text-white/60">{time.description}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
         {errors?.preferredTimeOfDay && (
           <p className="text-sm text-destructive">{errors.preferredTimeOfDay.message}</p>

@@ -1,11 +1,20 @@
 import { Card } from "@fitness-league/ui";
 import { Button } from "@fitness-league/ui";
 import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@fitness-league/ui";
+import { 
   Play, 
   Calendar, 
   Clock, 
   Dumbbell,
-  Users
+  Users,
+  MoreVertical,
+  Edit,
+  Trash2
 } from "lucide-react";
 
 interface WorkoutPlanCardProps {
@@ -18,6 +27,8 @@ interface WorkoutPlanCardProps {
     difficulty: string;
     exercises: Array<{
       exerciseId: string;
+      name?: string;
+      category?: string;
       sets: number;
       reps?: number;
       duration?: number;
@@ -25,7 +36,10 @@ interface WorkoutPlanCardProps {
     createdAt: Date;
   };
   onStartWorkout: () => void;
+  onUpdateWorkout: () => void;
+  onDeleteWorkout: () => void;
   isStarting?: boolean;
+  isDeleting?: boolean;
 }
 
 const difficultyColors = {
@@ -40,7 +54,7 @@ const difficultyLabels = {
   advanced: "Advanced",
 };
 
-export function WorkoutPlanCard({ plan, onStartWorkout, isStarting }: WorkoutPlanCardProps) {
+export function WorkoutPlanCard({ plan, onStartWorkout, onUpdateWorkout, onDeleteWorkout, isStarting, isDeleting }: WorkoutPlanCardProps) {
   const totalExercises = plan.exercises.length;
   const estimatedDuration = plan.exercises.reduce((total, exercise) => {
     if (exercise.duration) {
@@ -68,6 +82,29 @@ export function WorkoutPlanCard({ plan, onStartWorkout, isStarting }: WorkoutPla
             </span>
           </div>
         </div>
+        
+        {/* Three-dot menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onUpdateWorkout}>
+              <Edit className="w-4 h-4 mr-2" />
+              Update
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={onDeleteWorkout}
+              className="text-red-600 focus:text-red-600"
+              disabled={isDeleting}
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {isDeleting ? "Deleting..." : "Delete"}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Plan Details */}
@@ -112,16 +149,13 @@ export function WorkoutPlanCard({ plan, onStartWorkout, isStarting }: WorkoutPla
 
       {/* Exercise Preview */}
       <div className="mb-4">
-        <p className="text-xs text-fitness-muted-foreground mb-2">Sample Exercises:</p>
         <div className="flex flex-wrap gap-1">
           {plan.exercises.slice(0, 3).map((exercise, index) => (
             <span
-              key={index}
+              key={exercise.exerciseId || index}
               className="px-2 py-1 bg-fitness-primary/10 text-fitness-primary text-xs rounded"
             >
-              {exercise.sets} sets
-              {exercise.reps && ` × ${exercise.reps} reps`}
-              {exercise.duration && ` × ${exercise.duration}min`}
+              {exercise.name || `Exercise ${index + 1}`}
             </span>
           ))}
           {plan.exercises.length > 3 && (
@@ -136,7 +170,7 @@ export function WorkoutPlanCard({ plan, onStartWorkout, isStarting }: WorkoutPla
       <Button
         onClick={onStartWorkout}
         disabled={isStarting}
-        className="w-full bg-fitness-primary hover:bg-fitness-primary/90"
+        className="w-full bg-fitness-primary hover:bg-fitness-primary/90 mt-4"
       >
         {isStarting ? (
           <>

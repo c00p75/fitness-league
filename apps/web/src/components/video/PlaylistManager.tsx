@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Plus, Play, Pause, Trash2, Edit, Share, Clock, Users, Lock, Unlock } from "lucide-react";
+import { useState } from "react";
+import { Plus, Play, Trash2, Edit, Share, Clock, Users, Lock, Unlock } from "lucide-react";
 import { Button, Input, Card, CardContent, CardHeader, CardTitle, Badge } from "@fitness-league/ui";
 import { cn } from "@fitness-league/ui";
 

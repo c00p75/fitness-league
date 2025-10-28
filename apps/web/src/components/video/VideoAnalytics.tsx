@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useEffect } from "react";
 import { BarChart3, Clock, Play, Target, TrendingUp, Award } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@fitness-league/ui";
 import { cn } from "@fitness-league/ui";
@@ -248,7 +248,7 @@ export function VideoAnalytics({
                     <p className="font-medium text-sm">{achievement.name}</p>
                     <p className="text-xs text-gray-600">{achievement.description}</p>
                     <p className="text-xs text-gray-500 mt-1">
-                      Unlocked {achievement.unlockedAt?.toDate ? achievement.unlockedAt.toDate().toLocaleDateString() : new Date(achievement.unlockedAt).toLocaleDateString()}
+                      Unlocked {achievement.unlockedAt?.toDate ? achievement.unlockedAt.toDate().toLocaleDateString() : new Date(achievement.unlockedAt as any).toLocaleDateString()}
                     </p>
                   </div>
                 </div>

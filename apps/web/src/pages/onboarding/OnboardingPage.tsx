@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@fitness-league/ui";
 import { OnboardingInputSchema, type OnboardingInput } from "@fitness-league/shared";
-import { trpc } from "../../lib/trpc";
+import { submitOnboarding } from "../../services/firestore/onboardingService";
 import { StepIndicator } from "../../components/onboarding/StepIndicator";
 import { GoalSelection } from "../../components/onboarding/GoalSelection";
 import { ExperienceLevelSelection } from "../../components/onboarding/ExperienceLevelSelection";
@@ -14,9 +14,9 @@ import { WorkoutPreferencesForm } from "../../components/onboarding/WorkoutPrefe
 import { OnboardingComplete } from "../../components/onboarding/OnboardingComplete";
 
 const steps = [
+  { id: "biometrics", title: "About You", description: "Tell us about yourself" },
   { id: "goal", title: "Fitness Goal", description: "What's your main fitness goal?" },
   { id: "level", title: "Experience", description: "What's your fitness level?" },
-  { id: "biometrics", title: "About You", description: "Tell us about yourself" },
   { id: "preferences", title: "Preferences", description: "Your workout preferences" },
   { id: "complete", title: "Complete", description: "You're all set!" },
 ];
@@ -43,7 +43,7 @@ export function OnboardingPage() {
         age: 25,
         height: 170,
         weight: 70,
-        gender: "other",
+        gender: "male",
       },
       workoutPreferences: {
         preferredDuration: 30,
@@ -56,12 +56,19 @@ export function OnboardingPage() {
 
   const watchedValues = watch();
 
-  const submitOnboardingMutation = trpc.onboarding.submitOnboarding.useMutation({
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [["onboarding"]] });
+  const submitOnboardingMutation = useMutation({
+    mutationFn: submitOnboarding,
+    onSuccess: async () => {
+      // Invalidate both onboarding and goals queries to ensure dashboard updates
+      queryClient.invalidateQueries({ queryKey: ['onboarding'] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      
+      // Refetch goals immediately to ensure fresh data
+      await queryClient.refetchQueries({ queryKey: ['goals'] });
+      
       navigate("/");
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setError(error.message || "Failed to save your preferences. Please try again.");
     },
   });
@@ -101,25 +108,29 @@ export function OnboardingPage() {
     switch (currentStep) {
       case 0:
         return (
+          <BiometricsForm
+            register={register}
+            errors={errors.biometrics}
+            setValue={setValue}
+            watch={watch}
+          />
+        );
+      case 1:
+        return (
           <GoalSelection
             value={watchedValues.fitnessGoal}
             onChange={(goal) => setValue("fitnessGoal", goal)}
             error={errors.fitnessGoal?.message}
+            userGender={watchedValues.biometrics?.gender}
           />
         );
-      case 1:
+      case 2:
         return (
           <ExperienceLevelSelection
             value={watchedValues.experienceLevel}
             onChange={(level) => setValue("experienceLevel", level)}
             error={errors.experienceLevel?.message}
-          />
-        );
-      case 2:
-        return (
-          <BiometricsForm
-            register={register}
-            errors={errors.biometrics}
+            userGender={watchedValues.biometrics?.gender}
           />
         );
       case 3:
@@ -127,6 +138,8 @@ export function OnboardingPage() {
           <WorkoutPreferencesForm
             register={register}
             errors={errors.workoutPreferences}
+            setValue={setValue}
+            watch={watch}
           />
         );
       case 4:
@@ -140,26 +153,39 @@ export function OnboardingPage() {
   const isFirstStep = currentStep === 0;
 
   return (
-    <div className="min-h-screen bg-fitness-background py-8">
-      <div className="container mx-auto px-4 max-w-2xl">
+    <div className="min-h-screen py-8">
+      <div className="container mx-auto px-4 ">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome to Fitness League
+          <h1 className="text-4xl font-bold mb-2">
+            <span className="text-white">Welcome to </span>
+            <span className="bg-gradient-to-r from-fitness-primary to-cyan-400 bg-clip-text text-transparent">
+              Fitness League
+            </span>
           </h1>
           <p className="text-white/70">
             Let's personalize your fitness journey
           </p>
         </div>
 
-        <StepIndicator
-          steps={steps}
-          currentStep={currentStep}
-          className="mb-8"
-        />
+       
+        <div className="max-w-2xl mx-auto bg-card rounded-2xl px-5">
+          <StepIndicator
+            steps={steps}
+            currentStep={currentStep}
+            className="mb-8 mt-12 pb-3 pt-4"
+          />
+        </div>
 
         <Card className="fitness-card">
-          <CardHeader>
-            <CardTitle>{steps[currentStep].title}</CardTitle>
+          <CardHeader className="text-center mb-3">
+            <CardTitle 
+              className="text-3xl bg-gradient-to-b from-white via-gray-50 to-gray-100 bg-clip-text text-transparent"
+              style={{
+                textShadow: '0 0 10px rgba(156,163,175,0.5), 0 0 20px rgba(156,163,175,0.3), 0 0 30px rgba(156,163,175,0.2)'
+              }}
+            >
+              {steps[currentStep].title}
+            </CardTitle>
             <CardDescription>{steps[currentStep].description}</CardDescription>
           </CardHeader>
           <CardContent>
