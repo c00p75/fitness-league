@@ -141,7 +141,7 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   });
   const [showCustomValue, setShowCustomValue] = useState(false);
   const [showCustomTimeline, setShowCustomTimeline] = useState(false);
-  const [imageLoadStates, setImageLoadStates] = useState<Record<string, boolean>>({});
+  // Removed unused imageLoadStates
 
   const createGoalMutation = useMutation({
     mutationFn: (data: {

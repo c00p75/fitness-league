@@ -9,6 +9,7 @@ import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
 import { PlanGenerator } from "../../components/workouts/PlanGenerator";
 import { WorkoutPlanCard } from "../../components/workouts/WorkoutPlanCard";
 import { UpdateWorkoutModal } from "../../components/workouts/UpdateWorkoutModal";
+import { Goal } from "../../types/api";
 
 export function GoalDetailPage() {
   const { goalId } = useParams<{ goalId: string }>();
@@ -168,17 +169,20 @@ export function GoalDetailPage() {
   };
 
   const getDaysRemaining = () => {
+    if (!goal) return 0;
+    
+    const goalData = goal as Goal;
     // Handle Firestore Timestamp or Date objects
     let targetDate: Date;
-    if (goal.targetDate && typeof goal.targetDate.toDate === 'function') {
+    if (goalData.targetDate && typeof (goalData.targetDate as any).toDate === 'function') {
       // Firestore Timestamp
-      targetDate = goal.targetDate.toDate();
-    } else if (goal.targetDate instanceof Date) {
+      targetDate = (goalData.targetDate as any).toDate();
+    } else if (goalData.targetDate instanceof Date) {
       // Already a Date object
-      targetDate = goal.targetDate;
+      targetDate = goalData.targetDate;
     } else {
       // String or number timestamp
-      targetDate = new Date(goal.targetDate);
+      targetDate = new Date(goalData.targetDate);
     }
     
     const today = new Date();
@@ -256,11 +260,11 @@ export function GoalDetailPage() {
             <div className="flex items-center space-x-4 text-sm">
               <div className="flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
-                <span>Target: {formatDate(goal.targetDate)}</span>
+                <span>Target: {formatDate((goal as Goal).targetDate)}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <TrendingUp className="w-4 h-4" />
-                <span>Progress: {(goal as any).currentValue || 0} {(goal as any).unit}</span>
+                <span>Progress: {(goal as Goal).currentValue || 0} {(goal as Goal).unit}</span>
               </div>
             </div>
           </div>

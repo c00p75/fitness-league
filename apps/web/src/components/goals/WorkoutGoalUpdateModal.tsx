@@ -7,6 +7,7 @@ import { Input } from "@fitness-league/ui";
 import { Label } from "@fitness-league/ui";
 import toast from "react-hot-toast";
 import { X, TrendingUp, Plus, Minus, Target, CheckCircle } from "lucide-react";
+import { Goal } from "../../types/api";
 
 interface WorkoutGoalUpdateModalProps {
   isOpen: boolean;
@@ -29,7 +30,7 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
   const [isCompleted, setIsCompleted] = useState(false);
 
   // Fetch goal details
-  const { data: goal, isLoading: goalLoading } = useQuery({
+  const { data: goal } = useQuery({
     queryKey: ['goals', goalId],
     queryFn: () => getGoal(goalId),
     enabled: !!goalId && isOpen,
@@ -38,7 +39,7 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
   // Update form when goal prop changes
   useEffect(() => {
     if (goal && typeof goal === 'object' && 'currentValue' in goal) {
-      setProgressValue((goal as any).currentValue.toString());
+      setProgressValue((goal as Goal).currentValue.toString());
       setIsCompleted(false);
     }
   }, [goal]);
@@ -62,7 +63,8 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
     onComplete([{ goalId, progressValue: numericValue }]);
     
     // Show success message
-    const progressPercentage = (numericValue / goal!.targetValue) * 100;
+    const goalData = goal as Goal;
+    const progressPercentage = (numericValue / goalData.targetValue) * 100;
     if (progressPercentage >= 100) {
       setIsCompleted(true);
       toast.success("Goal Completed!", {
@@ -97,15 +99,15 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
 
   const handleSetToTarget = () => {
     if (goal) {
-      setProgressValue(goal.targetValue.toString());
+      setProgressValue((goal as Goal).targetValue.toString());
     }
   };
 
   if (!isOpen || !goal) return null;
 
   const currentProgress = parseFloat(progressValue) || 0;
-  const progressPercentage = Math.min(100, (currentProgress / goal.targetValue) * 100);
-  const isGoalReached = currentProgress >= goal.targetValue;
+  const progressPercentage = Math.min(100, (currentProgress / (goal as Goal).targetValue) * 100);
+  const isGoalReached = currentProgress >= (goal as Goal).targetValue;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
@@ -136,11 +138,11 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
             <div className="flex items-center mb-2">
               <Target className="w-5 h-5 text-fitness-primary mr-2" />
               <h3 className="font-semibold text-fitness-foreground">
-                {goalTypeLabels[goal.type as keyof typeof goalTypeLabels] || goal.type}
+                {goalTypeLabels[(goal as Goal).type as keyof typeof goalTypeLabels] || (goal as Goal).type}
               </h3>
             </div>
             <div className="text-sm text-fitness-muted-foreground">
-              Target: {goal.targetValue} {goal.unit}
+              Target: {(goal as Goal).targetValue} {(goal as Goal).unit}
             </div>
           </div>
 
@@ -163,7 +165,7 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
               />
             </div>
             <div className="text-center text-sm text-fitness-muted-foreground">
-              {currentProgress.toFixed(1)} / {goal.targetValue} {goal.unit}
+              {currentProgress.toFixed(1)} / {(goal as Goal).targetValue} {(goal as Goal).unit}
             </div>
           </div>
 
@@ -252,7 +254,7 @@ export function WorkoutGoalUpdateModal({ isOpen, onClose, goalId, onComplete }: 
                 className="w-full"
               >
                 <Target className="w-4 h-4 mr-2" />
-                Complete Goal ({goal.targetValue} {goal.unit})
+                Complete Goal ({(goal as Goal).targetValue} {(goal as Goal).unit})
               </Button>
             )}
 
