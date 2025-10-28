@@ -269,8 +269,15 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
 
   const generatePlanMutation = useMutation({
     mutationFn: generatePlan,
+    onError: (error: any) => {
+      console.error('Failed to create workout plan:', error);
+    },
     onSuccess: (newPlan: any) => {
+      // Invalidate and refetch queries to update the UI
       queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      queryClient.refetchQueries({ queryKey: ['workouts'] });
+      
+      // Reset form
       onClose();
       setStep(1);
       setFormData({ 
@@ -284,7 +291,8 @@ export function PlanGenerator({ isOpen, onClose, goals, preSelectedGoalId }: Pla
         planName: "",
         useCustomName: false,
       });
-      // Redirect to the workout session for the newly created plan
+      
+      // Navigate to the workout session for the newly created plan
       navigate(`/goals/${newPlan.goalId}/workouts/${newPlan.id}/session`);
     },
   });
