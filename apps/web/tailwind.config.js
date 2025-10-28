@@ -98,9 +98,33 @@ export default {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-in": "fade-in 0.2s ease-out",
-        "slide-in-from-top": "slide-in-from-top 0.2s ease-out",
-        "slide-in-from-bottom": "slide-in-from-bottom 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "fade-in-fast": "fade-in 0.15s ease-out",
+        "slide-in-from-top": "slide-in-from-top 0.3s ease-out",
+        "slide-in-from-bottom": "slide-in-from-bottom 0.3s ease-out",
+        "slide-in-from-right": "slideInFromRight 0.3s ease-out",
+        "slide-in-from-left": "slideInFromLeft 0.3s ease-out",
+        "scale-in": "scaleIn 0.2s ease-out",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+      },
+      keyframes: {
+        ...require('tailwindcss/defaultTheme').keyframes,
+        "slideInFromRight": {
+          "0%": { opacity: "0", transform: "translateX(20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "slideInFromLeft": {
+          "0%": { opacity: "0", transform: "translateX(-20px)" },
+          "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        "scaleIn": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(119, 227, 248, 0.4)" },
+          "50%": { boxShadow: "0 0 20px 8px rgba(119, 227, 248, 0.2)" },
+        },
       },
     },
   },

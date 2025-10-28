@@ -5,25 +5,25 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 active:scale-95 disabled:scale-100",
   {
     variants: {
       variant: {
-        default: "bg-fitness-primary hover:bg-fitness-primary-dark text-black font-semibold",
+        default: "bg-fitness-primary hover:bg-fitness-primary-dark text-black font-semibold shadow-md hover:shadow-lg",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-lg",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground shadow-sm hover:shadow-md",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm hover:shadow-md",
         ghost: "hover:bg-accent hover:text-accent-foreground text-white/70",
         link: "text-primary underline-offset-4 hover:underline",
-        fitness: "bg-gradient-to-r from-fitness-gradient-from to-fitness-gradient-to text-white font-semibold hover:shadow-lg",
+        fitness: "bg-gradient-to-r from-fitness-gradient-from to-fitness-gradient-to text-white font-semibold hover:shadow-lg hover:shadow-fitness-primary/20",
       },
       size: {
         default: "h-10 px-4 py-2",
-        sm: "h-9 rounded-lg px-3",
-        lg: "h-11 rounded-lg px-8",
+        sm: "h-9 rounded-lg px-3 text-xs",
+        lg: "h-11 rounded-lg px-8 text-base",
         icon: "h-10 w-10",
       },
     },
