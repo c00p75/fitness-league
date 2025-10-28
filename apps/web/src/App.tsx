@@ -33,7 +33,7 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <SEO {...SEOConfigs.home} />
+      <SEO {...(SEOConfigs.home as any)} />
       <Suspense fallback={
         <div className="min-h-screen bg-fitness-background flex items-center justify-center">
           <LoadingSpinner size="lg" />

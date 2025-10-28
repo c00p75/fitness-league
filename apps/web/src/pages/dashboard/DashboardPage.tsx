@@ -82,6 +82,14 @@ export function DashboardPage() {
     return profile?.biometrics?.gender || 'male'; // Default to male if not available
   };
 
+  // Resolve preferred display name from profile or auth
+  const resolvedDisplayName = (() => {
+    const fromProfile = (profile as any)?.displayName;
+    const fromAuth = user?.displayName;
+    const name = (fromProfile || fromAuth || '').trim();
+    return name.length > 0 ? name : null;
+  })();
+
   // Map goal types to image names
   const getGoalImagePath = (goalType: string) => {
     const gender = getUserGender();
@@ -160,7 +168,7 @@ export function DashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold text-white">
-          Welcome back, {user?.displayName || "Fitness Enthusiast"}! 👋
+          Welcome back, {resolvedDisplayName || "Fitness Enthusiast"}! 👋
         </h1>
         <p className="text-white/70">
           Ready to crush your fitness goals today?
