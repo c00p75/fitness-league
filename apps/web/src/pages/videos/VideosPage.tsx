@@ -1,50 +1,58 @@
-import React, { useState } from "react";
-import { Play, Search, BarChart3, List, Plus } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Play, Search, BarChart3, List, ArrowLeft } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger } from "@fitness-league/ui";
 import { VideoSearch, VideoFilters } from "../../components/video/VideoSearch";
 import { PlaylistManager, WorkoutPlaylist } from "../../components/video/PlaylistManager";
-import { VideoAnalytics, UserVideoStats } from "../../components/video/VideoAnalytics";
+import { VideoAnalytics } from "../../components/video/VideoAnalytics";
 import { PlaylistPlayer } from "../../components/video/PlaylistPlayer";
-import { YouTubePlayer } from "../../components/video/YouTubePlayer";
-import { trpc } from "../../lib/trpc";
+import { useMutation } from "@tanstack/react-query";
 
 export function VideosPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("search");
   const [selectedPlaylist, setSelectedPlaylist] = useState<WorkoutPlaylist | null>(null);
   const [videoFilters, setVideoFilters] = useState<VideoFilters>({});
-  const [searchQuery, setSearchQuery] = useState("");
+  // Removed unused searchQuery
 
-  // tRPC queries and mutations
-  const { data: searchResults, isLoading: isSearching } = trpc.videos.searchVideos.useQuery({
-    query: searchQuery,
-    ...videoFilters,
-  });
-
-  const { data: playlists, refetch: refetchPlaylists } = trpc.videos.getUserPlaylists.useQuery();
-  const { data: userAnalytics } = trpc.videos.getUserAnalytics.useQuery();
-
-  const createPlaylistMutation = trpc.videos.createPlaylist.useMutation({
-    onSuccess: () => {
-      refetchPlaylists();
+  // Note: Video features not yet implemented
+  const searchResults: any[] = [];
+  const isSearching = false;
+  const playlists: any[] = [];
+  // Removed unused data variables
+  
+  const createPlaylistMutation = useMutation({
+    mutationFn: async (data: any) => {
+      console.log('Create playlist - not yet implemented');
+      return Promise.resolve();
     },
   });
 
-  const updatePlaylistMutation = trpc.videos.updatePlaylist.useMutation({
-    onSuccess: () => {
-      refetchPlaylists();
+  const updatePlaylistMutation = useMutation({
+    mutationFn: async ({ playlistId, data }: any) => {
+      console.log('Update playlist - not yet implemented');
+      return Promise.resolve();
     },
   });
 
-  const deletePlaylistMutation = trpc.videos.deletePlaylist.useMutation({
-    onSuccess: () => {
-      refetchPlaylists();
+  const deletePlaylistMutation = useMutation({
+    mutationFn: async (playlistId: string) => {
+      console.log('Delete playlist - not yet implemented');
+      return Promise.resolve();
     },
   });
 
-  const trackVideoMutation = trpc.videos.trackVideo.useMutation();
+  const trackVideoMutation = useMutation({
+    mutationFn: async (data: any) => {
+      console.log('Track video - not yet implemented');
+      return Promise.resolve();
+    },
+  });
+  
+  // Removed unused refetchPlaylists
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
+    console.log('Search query:', query);
   };
 
   const handleFilter = (filters: VideoFilters) => {
@@ -61,7 +69,7 @@ export function VideosPage() {
 
   const handleDeletePlaylist = (id: string) => {
     if (window.confirm("Are you sure you want to delete this playlist?")) {
-      deletePlaylistMutation.mutate({ playlistId: id });
+      deletePlaylistMutation.mutate(id);
     }
   };
 
@@ -100,10 +108,23 @@ export function VideosPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Workout Videos</h1>
-        <p className="text-gray-600">
-          Discover, organize, and track your fitness journey with our comprehensive video library
-        </p>
+        <div className="flex items-start flex-col">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/dashboard")}
+            className="bg-[#212121] hover:bg-[#262626] mb-6 py-1 h-fit text-[0.8rem] -mt-2"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Workout Videos</h1>
+            <p className="text-gray-600">
+              Discover, organize, and track your fitness journey with our comprehensive video library
+            </p>
+          </div>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -140,7 +161,7 @@ export function VideosPage() {
               <h2 className="text-xl font-semibold">Search Results</h2>
               {searchResults && (
                 <span className="text-sm text-gray-600">
-                  {searchResults.total} videos found
+                  {searchResults.length} videos found
                 </span>
               )}
             </div>
@@ -157,17 +178,17 @@ export function VideosPage() {
                   </Card>
                 ))}
               </div>
-            ) : searchResults?.exercises ? (
+            ) : searchResults?.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {searchResults.exercises.map((exercise) => (
-                  <Card key={exercise.id} className="group hover:shadow-lg transition-shadow">
+                {searchResults.map((video: any) => (
+                  <Card key={video.id} className="group hover:shadow-lg transition-shadow">
                     <CardContent className="p-0">
                       {/* Video Thumbnail */}
-                      {exercise.youtubeVideoId && (
+                      {video.youtubeVideoId && (
                         <div className="relative">
                           <img
-                            src={`https://img.youtube.com/vi/${exercise.youtubeVideoId}/hqdefault.jpg`}
-                            alt={exercise.name}
+                            src={`https://img.youtube.com/vi/${video.youtubeVideoId}/hqdefault.jpg`}
+                            alt={video.name}
                             className="w-full h-32 object-cover rounded-t-lg"
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-lg flex items-center justify-center">
@@ -181,20 +202,20 @@ export function VideosPage() {
 
                       {/* Exercise Info */}
                       <div className="p-4">
-                        <h3 className="font-semibold text-lg mb-1">{exercise.name}</h3>
+                        <h3 className="font-semibold text-lg mb-1">{video.name}</h3>
                         <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                          {exercise.description}
+                          {video.description}
                         </p>
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
-                              {exercise.category}
+                              {video.category}
                             </span>
                             <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">
-                              {exercise.difficulty}
+                              {video.difficulty}
                             </span>
                           </div>
-                          <span className="text-gray-500">{exercise.duration} min</span>
+                          <span className="text-gray-500">{video.duration} min</span>
                         </div>
                       </div>
                     </CardContent>

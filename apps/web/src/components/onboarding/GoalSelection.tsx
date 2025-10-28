@@ -1,11 +1,31 @@
 import { FitnessGoal } from "@fitness-league/shared";
 import { Card, CardContent } from "@fitness-league/ui";
+import { useMemo } from "react";
 
 interface GoalSelectionProps {
   value: FitnessGoal;
   onChange: (goal: FitnessGoal) => void;
   error?: string;
+  userGender?: string;
 }
+
+// Utility function to randomly select gender variant
+const getRandomGender = () => Math.random() < 0.5 ? 'male' : 'female';
+
+// Map goal IDs to their corresponding image filenames
+const getGoalImagePath = (goalId: FitnessGoal, gender: string): string => {
+  const imageMap: Record<FitnessGoal, string> = {
+    build_strength: 'build_strength',
+    lose_weight: 'lose_weight',
+    gain_muscle: 'gain_muscle',
+    improve_endurance: 'endurance',
+    general_fitness: 'general_fitness',
+    flexibility: 'flexibility',
+    sport_specific: 'sports_specific'
+  };
+  
+  return `/images/goals/${imageMap[goalId]}_${gender}.jpeg`;
+};
 
 const goals = [
   {
@@ -52,31 +72,49 @@ const goals = [
   },
 ];
 
-export function GoalSelection({ value, onChange, error }: GoalSelectionProps) {
+export function GoalSelection({ value, onChange, error, userGender }: GoalSelectionProps) {
+  // Use user's gender selection or fallback to random for each goal
+  const goalImages = useMemo(() => {
+    return goals.map(goal => ({
+      ...goal,
+      imagePath: getGoalImagePath(goal.id, userGender || getRandomGender())
+    }));
+  }, [userGender]);
+
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {goals.map((goal) => (
-          <Card
-            key={goal.id}
-            className={`cursor-pointer transition-all hover:shadow-lg ${
-              value === goal.id
-                ? "ring-2 ring-fitness-primary bg-fitness-primary/10"
-                : "fitness-card hover:bg-fitness-surface-light"
-            }`}
-            onClick={() => onChange(goal.id)}
-          >
-            <CardContent className="p-6">
-              <div className="flex items-center space-x-4">
-                <div className="text-2xl">{goal.icon}</div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {goalImages.map((goal) => {
+          const isSelected = value === goal.id;
+          
+          return (
+            <Card
+              key={goal.id}
+              className={`cursor-pointer transition-all hover:shadow-lg relative overflow-hidden min-h-[350px] ${
+                isSelected
+                  ? "ring-2 ring-fitness-primary"
+                  : "hover:scale-[1.02]"
+              }`}
+              onClick={() => onChange(goal.id)}
+              style={{
+                backgroundImage: `url(${goal.imagePath})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
+              }}
+            >
+              {/* Dark gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+              
+              <CardContent className="p-6 relative z-10 h-full flex flex-col justify-end">
                 <div>
-                  <h3 className="font-semibold text-white">{goal.title}</h3>
-                  <p className="text-sm text-white/70">{goal.description}</p>
+                  <h3 className="font-semibold text-white drop-shadow-lg text-xl">{goal.title}</h3>
+                  <p className="text-sm text-white/90 drop-shadow-md mt-2">{goal.description}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
       {error && (
         <p className="text-sm text-destructive">{error}</p>

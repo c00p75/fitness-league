@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "../../lib/trpc";
+import { createGoal } from "../../services/firestore/goalsService";
+import { getProfile } from "../../services/firestore/userService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -14,12 +15,12 @@ interface CreateGoalModalProps {
 }
 
 const goalTypes = [
-  { value: "weight_loss", label: "Weight Loss", icon: "🔥", unit: "kg" },
-  { value: "muscle_gain", label: "Muscle Gain", icon: "💪", unit: "kg" },
-  { value: "flexibility", label: "Flexibility", icon: "🧘", unit: "sessions" },
-  { value: "general_fitness", label: "General Fitness", icon: "🏃", unit: "workouts" },
-  { value: "endurance_improvement", label: "Endurance", icon: "⚡", unit: "minutes" },
-  { value: "strength_gain", label: "Strength", icon: "🏋️", unit: "kg" },
+  { value: "weight_loss", label: "Weight Loss", unit: "kg" },
+  { value: "muscle_gain", label: "Muscle Gain", unit: "kg" },
+  { value: "flexibility", label: "Flexibility", unit: "sessions" },
+  { value: "general_fitness", label: "General Fitness", unit: "workouts" },
+  { value: "endurance_improvement", label: "Endurance", unit: "minutes" },
+  { value: "strength_gain", label: "Strength", unit: "kg" },
 ];
 
 const goalDurationOptions = [
@@ -91,9 +92,46 @@ const targetValueRecommendations: Record<string, {
   },
 };
 
+// Image path utility functions
+const getGoalImagePath = (goalType: string, gender: string): string => {
+  const mapping: Record<string, string> = {
+    weight_loss: 'lose_weight',
+    muscle_gain: 'gain_muscle',
+    flexibility: 'flexibility',
+    general_fitness: 'general_fitness',
+    endurance_improvement: 'endurance',
+    strength_gain: 'build_strength'
+  };
+  const safeGender = gender === 'other' ? 'male' : gender;
+  return `/images/goals/${mapping[goalType]}_${safeGender}.jpeg`;
+};
+
+// Removed getWorkoutImagePath as we're using gradients instead
+
+// Dynamic gradient colors based on goal type
+const getGoalGradient = (goalType: string): string => {
+  const gradients: Record<string, string> = {
+    weight_loss: 'from-red-500 via-orange-500 to-yellow-500',
+    muscle_gain: 'from-blue-500 via-purple-500 to-indigo-500',
+    flexibility: 'from-green-500 via-teal-500 to-cyan-500',
+    general_fitness: 'from-purple-500 via-pink-500 to-rose-500',
+    endurance_improvement: 'from-yellow-500 via-orange-500 to-red-500',
+    strength_gain: 'from-gray-600 via-gray-700 to-gray-800',
+  };
+  return gradients[goalType] || 'from-purple-500 via-pink-500 to-rose-500';
+};
+
 export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  
+  // Fetch user profile to get gender for image selection
+  const { data: profileData } = useQuery({
+    queryKey: ['user', 'profile'],
+    queryFn: getProfile,
+  });
+  const userGender = profileData?.biometrics?.gender || 'male';
+  
   const [formData, setFormData] = useState({
     type: "",
     targetValue: "",
@@ -103,10 +141,18 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   });
   const [showCustomValue, setShowCustomValue] = useState(false);
   const [showCustomTimeline, setShowCustomTimeline] = useState(false);
+  // Removed unused imageLoadStates
 
-  const createGoalMutation = trpc.goals.createGoal.useMutation({
-    onSuccess: (newGoal) => {
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
+  const createGoalMutation = useMutation({
+    mutationFn: (data: {
+      type: string;
+      targetValue: number;
+      unit: string;
+      targetDate: Date;
+      durationWeeks: number;
+    }) => createGoal(data),
+    onSuccess: (newGoal: any) => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
       onClose();
       setFormData({ type: "", targetValue: "", unit: "", targetDate: "", durationWeeks: 8 });
       setShowCustomValue(false);
@@ -208,8 +254,8 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -242,27 +288,43 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
               <Label className="text-sm font-medium text-fitness-foreground mb-3 block">
                 What do you want to achieve?
               </Label>
-              <div className="grid grid-cols-2 gap-3">
-                {goalTypes.map((goalType) => (
-                  <button
-                    key={goalType.value}
-                    type="button"
-                    onClick={() => handleGoalTypeSelect(goalType.value)}
-                    className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
-                      formData.type === goalType.value
-                        ? "border-fitness-primary bg-fitness-primary/5"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
-                  >
-                    <div className="flex items-center mb-2">
-                      <span className="text-lg mr-2">{goalType.icon}</span>
-                      <span className="font-medium text-sm">{goalType.label}</span>
-                    </div>
-                    <p className="text-xs text-fitness-muted-foreground">
-                      {goalType.unit}
-                    </p>
-                  </button>
-                ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {goalTypes.map((goalType) => {
+                  const isSelected = formData.type === goalType.value;
+                  const imagePath = getGoalImagePath(goalType.value, userGender);
+                  
+                  return (
+                    <button
+                      key={goalType.value}
+                      type="button"
+                      onClick={() => handleGoalTypeSelect(goalType.value)}
+                      className={`relative overflow-hidden rounded-lg border-2 transition-all duration-200 text-left min-h-[120px] focus:outline-none focus:ring-2 focus:ring-fitness-primary focus:ring-offset-2 ${
+                        isSelected
+                          ? "border-fitness-primary ring-2 ring-fitness-primary"
+                          : "border-gray-200 hover:border-gray-300 hover:scale-[1.02]"
+                      }`}
+                      style={{
+                        backgroundImage: `url(${imagePath})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat'
+                      }}
+                    >
+                      {/* Dark gradient overlay for text readability */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent" />
+                      
+                      {/* Content */}
+                      <div className="relative z-10 p-3 h-full flex flex-col justify-end">
+                        <div className="flex items-center mb-2">
+                          <span className="font-medium text-sm text-white drop-shadow-lg">{goalType.label}</span>
+                        </div>
+                        <p className="text-xs text-white/90 drop-shadow-md">
+                          {goalType.unit}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -288,13 +350,36 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
                 <Label className="text-sm font-medium text-fitness-foreground mb-3 block">
                   What's your target?
                 </Label>
-                <div className="grid grid-cols-2 gap-3">
+                
+                {/* Dynamic Gradient Preview Banner */}
+                <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
+                  <div 
+                    className={`h-24 w-full relative bg-gradient-to-r ${getGoalGradient(formData.type)}`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+                    <div className="relative z-10 p-4 h-full flex items-center">
+                      <div className="flex items-center">
+                        <Target className="w-6 h-6 text-white mr-3 drop-shadow-lg" />
+                        <div>
+                          <h3 className="text-white font-semibold drop-shadow-lg">
+                            {goalTypes.find(gt => gt.value === formData.type)?.label}
+                          </h3>
+                          <p className="text-white/90 text-sm drop-shadow-md">
+                            Set your target in {formData.unit}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {targetValueRecommendations[formData.type]?.suggestions.map((suggestion) => (
                     <button
                       key={suggestion.value}
                       type="button"
                       onClick={() => handleTargetValueSelect(suggestion.value)}
-                      className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                      className={`p-3 rounded-lg border-2 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-fitness-primary focus:ring-offset-2 ${
                         (suggestion.value === 0 && showCustomValue) ||
                         (suggestion.value !== 0 && formData.targetValue === suggestion.value.toString())
                           ? "border-fitness-primary bg-fitness-primary/5"
@@ -346,13 +431,15 @@ export function CreateGoalModal({ isOpen, onClose }: CreateGoalModalProps) {
               <Label className="text-sm font-medium text-fitness-foreground mb-3 block">
                 Goal Timeline
               </Label>
-              <div className="grid grid-cols-2 gap-3">
+              
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {goalDurationOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
                     onClick={() => handleDurationSelect(option.weeks)}
-                    className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
+                    className={`p-3 rounded-lg border-2 transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-fitness-primary focus:ring-offset-2 ${
                       (option.weeks === 0 && showCustomTimeline) ||
                       (option.weeks !== 0 && formData.durationWeeks === option.weeks)
                         ? "border-fitness-primary bg-fitness-primary/5"

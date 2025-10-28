@@ -54,11 +54,7 @@ export function YouTubePlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(100);
-  const [isMuted, setIsMuted] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [showSettings, setShowSettings] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  // Removed unused volume and isFullscreen
 
   // Generate embed URL with parameters
   const embedUrl = React.useMemo(() => {
@@ -113,7 +109,7 @@ export function YouTubePlayer({
       events: {
         onReady: () => {
           setIsLoading(false);
-          setDuration(player.getDuration());
+          setDuration(player?.getDuration ? player.getDuration() : 0);
           onReady?.();
         },
         onStateChange: (event: any) => {
@@ -158,18 +154,10 @@ export function YouTubePlayer({
   }, [videoId, onReady, onEnd, onError, onProgress, onComplete, trackProgress]);
 
   // Handle playback speed changes
-  const handleSpeedChange = (speed: number) => {
-    setPlaybackSpeed(speed);
-    onSpeedChange?.(speed);
-    // Note: YouTube API doesn't support speed changes via iframe
-    // This would require YouTube Player API implementation
-  };
+  // Removed unused setPlaybackSpeed, setVolume, setIsMuted, setIsFullscreen, setShowSettings
 
   // Handle volume changes
-  const handleVolumeChange = (newVolume: number) => {
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  };
+  // Removed unused setVolume, setIsMuted
 
   // Handle fullscreen toggle
   const handleFullscreen = () => {

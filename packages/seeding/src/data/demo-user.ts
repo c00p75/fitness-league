@@ -9,7 +9,7 @@ export const demoUserProfile: UserProfile = {
     age: 28,
     height: 175, // cm
     weight: 70, // kg
-    gender: "other",
+    gender: "male",
   },
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
@@ -19,7 +19,7 @@ export const demoUserBiometrics: Biometrics = {
   age: 28,
   height: 175,
   weight: 70,
-  gender: "other",
+  gender: "male",
 };
 
 export const demoUserOnboarding: OnboardingInput = {

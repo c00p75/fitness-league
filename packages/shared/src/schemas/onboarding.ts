@@ -38,7 +38,7 @@ export const OnboardingInputSchema = z.object({
     age: z.number().min(13).max(120),
     height: z.number().min(100).max(250),
     weight: z.number().min(30).max(300),
-    gender: z.enum(["male", "female", "other"]),
+    gender: z.enum(["male", "female"]),
   }),
   workoutPreferences: WorkoutPreferencesSchema,
 });

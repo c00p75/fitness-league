@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { trpc } from "../../lib/trpc";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getGoals } from "../../services/firestore/goalsService";
+import { getPlans, deletePlan } from "../../services/firestore/workoutsService";
 import { Button } from "@fitness-league/ui";
 import { 
   Plus, 
@@ -12,37 +14,75 @@ import {
 } from "lucide-react";
 import { PlanGenerator } from "../../components/workouts/PlanGenerator";
 import { WorkoutPlanCard } from "../../components/workouts/WorkoutPlanCard";
+import { UpdateWorkoutModal } from "../../components/workouts/UpdateWorkoutModal";
 
 export function WorkoutsPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [showPlanGenerator, setShowPlanGenerator] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
+  const [deletingWorkoutId, setDeletingWorkoutId] = useState<string | null>(null);
 
   // Fetch user goals for plan generation
-  const { data: goals = [] } = trpc.goals.getGoals.useQuery(undefined);
-  const activeGoals = goals.filter((goal: any) => goal.isActive !== false);
+  const { data: goals = [] } = useQuery({
+    queryKey: ['goals'],
+    queryFn: getGoals,
+  });
+  const activeGoals = (goals as any[]).filter((goal: any) => goal.isActive !== false);
 
   // Fetch workout plans
-  const { data: plans = [], isLoading: plansLoading } = trpc.workouts.getPlans.useQuery(undefined);
+  const { data: plans = [], isLoading: plansLoading } = useQuery({
+    queryKey: ['workouts', 'plans'],
+    queryFn: async () => getPlans(),
+  });
 
-  // Fetch workout sessions
-  const { data: sessions = [], isLoading: sessionsLoading } = trpc.workouts.getSessions.useQuery(undefined);
+  // Note: Sessions endpoint not yet implemented
+  const sessions: any[] = [];
+  const sessionsLoading = false;
 
   // Start workout session mutation
-  const startSessionMutation = trpc.workouts.startSession.useMutation({
-    onSuccess: (session, variables) => {
+  // Note: Session endpoints not yet implemented - will navigate to detail page for now
+  const startSessionMutation = useMutation({
+    mutationFn: (planId: string) => Promise.resolve(),
+    onSuccess: (_, planId) => {
       // Find the workout plan to get the goalId
-      const plan = plans.find((p: any) => p.id === variables.planId);
-      if (plan && (plan as any).goalId) {
-        navigate(`/goals/${(plan as any).goalId}/workouts/${variables.planId}/session`);
+      const plan = (plans as any[]).find((p: any) => p.id === planId);
+      if (plan && plan.goalId) {
+        navigate(`/goals/${plan.goalId}/workouts/${planId}/session`);
       } else {
-        // Fallout to a generic route if goalId is not available
-        navigate(`/workouts/${variables.planId}/session`);
+        navigate(`/workouts/${planId}/session`);
       }
     },
   });
 
+  // Delete workout plan mutation
+  const deleteWorkoutMutation = useMutation({
+    mutationFn: deletePlan,
+    onSuccess: () => {
+      setDeletingWorkoutId(null);
+      // Refetch plans to update the list
+      queryClient.invalidateQueries({ queryKey: ['workouts'] });
+    },
+    onError: () => {
+      setDeletingWorkoutId(null);
+    },
+  });
+
   const handleStartWorkout = async (planId: string) => {
-    await startSessionMutation.mutateAsync({ planId });
+    await startSessionMutation.mutateAsync(planId);
+  };
+
+  const handleUpdateWorkout = (workout: any) => {
+    setSelectedWorkout(workout);
+    setShowUpdateModal(true);
+  };
+
+  const handleDeleteWorkout = async (workoutId: string) => {
+    if (window.confirm("Are you sure you want to delete this workout plan? This action cannot be undone.")) {
+      setDeletingWorkoutId(workoutId);
+      await deleteWorkoutMutation.mutateAsync(workoutId);
+    }
   };
 
   if (plansLoading || sessionsLoading) {
@@ -79,14 +119,24 @@ export function WorkoutsPage() {
               Personalized workout plans tailored to your goals
             </p>
           </div>
-          <Button
-            onClick={() => setShowPlanGenerator(true)}
-            disabled={activeGoals.length === 0}
-            className="bg-fitness-primary hover:bg-fitness-primary/90"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Generate Plan
-          </Button>
+          <div className="flex space-x-3">
+            <Button
+              onClick={() => navigate("/goals")}
+              variant="outline"
+              className="border-fitness-primary text-fitness-primary hover:bg-fitness-primary hover:text-white"
+            >
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Update Goals
+            </Button>
+            <Button
+              onClick={() => setShowPlanGenerator(true)}
+              disabled={activeGoals.length === 0}
+              className="bg-fitness-primary hover:bg-fitness-primary/90"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Generate Plan
+            </Button>
+          </div>
         </div>
 
         {/* No Goals Warning */}
@@ -145,7 +195,10 @@ export function WorkoutsPage() {
                   createdAt: plan.createdAt?.toDate ? plan.createdAt.toDate() : new Date(plan.createdAt),
                 }}
                 onStartWorkout={() => handleStartWorkout(plan.id)}
+                onUpdateWorkout={() => handleUpdateWorkout(plan)}
+                onDeleteWorkout={() => handleDeleteWorkout(plan.id)}
                 isStarting={startSessionMutation.isPending}
+                isDeleting={deletingWorkoutId === plan.id}
               />
             ))}
           </div>
@@ -252,6 +305,18 @@ export function WorkoutsPage() {
             durationWeeks: goal.durationWeeks || 8,
           }))}
         />
+
+        {/* Update Workout Modal */}
+        {selectedWorkout && (
+          <UpdateWorkoutModal
+            isOpen={showUpdateModal}
+            onClose={() => {
+              setShowUpdateModal(false);
+              setSelectedWorkout(null);
+            }}
+            workout={selectedWorkout}
+          />
+        )}
       </div>
     </div>
   );

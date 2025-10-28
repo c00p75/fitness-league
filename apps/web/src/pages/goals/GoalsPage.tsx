@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
+import { getGoals, deleteGoal, updateGoalProgress } from "../../services/firestore/goalsService";
 import { Button } from "@fitness-league/ui";
-import { Plus, Target, TrendingUp, Calendar } from "lucide-react";
+import { Plus, Target, TrendingUp, Calendar, ArrowLeft } from "lucide-react";
 import { CreateGoalModal } from "../../components/goals/CreateGoalModal";
 import { EditGoalModal } from "../../components/goals/EditGoalModal";
-import { UpdateProgressModal } from "../../components/goals/UpdateProgressModal";
 import { GoalCard } from "../../components/goals/GoalCard";
 
 export function GoalsPage() {
@@ -20,27 +19,33 @@ export function GoalsPage() {
     unit: string;
     targetDate: Date;
   } | null>(null);
-  const [updatingProgressGoal, setUpdatingProgressGoal] = useState<{
-    id: string;
-    type: string;
-    currentValue: number;
-    targetValue: number;
-    unit: string;
-  } | null>(null);
 
   // Fetch user goals
-  const { data: goals = [], isLoading } = trpc.goals.getGoals.useQuery(undefined);
+  const { data: goals = [], isLoading } = useQuery({
+    queryKey: ['goals'],
+    queryFn: getGoals,
+  });
 
   // Delete goal mutation
-  const deleteGoalMutation = trpc.goals.deleteGoal.useMutation({
+  const deleteGoalMutation = useMutation({
+    mutationFn: deleteGoal,
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+  });
+
+  // Update goal progress mutation
+  const updateProgressMutation = useMutation({
+    mutationFn: ({ goalId, currentValue }: { goalId: string; currentValue: number }) =>
+      updateGoalProgress(goalId, currentValue),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
   });
 
   const handleDeleteGoal = async (goalId: string) => {
     if (window.confirm("Are you sure you want to delete this goal?")) {
-      await deleteGoalMutation.mutateAsync({ goalId });
+      await deleteGoalMutation.mutateAsync(goalId);
     }
   };
 
@@ -57,15 +62,34 @@ export function GoalsPage() {
     }
   };
 
-  const handleUpdateProgress = (goalId: string) => {
+  const handleIncrementProgress = async (goalId: string) => {
     const goal = goals.find((g: any) => g.id === goalId) as any;
     if (goal) {
-      setUpdatingProgressGoal({
-        id: goal.id,
-        type: goal.type || "general_fitness",
-        currentValue: goal.currentValue || 0,
-        targetValue: goal.targetValue || 0,
-        unit: goal.unit || "",
+      const newValue = Math.min((goal.currentValue || 0) + 1, goal.targetValue || 0);
+      await updateProgressMutation.mutateAsync({ 
+        goalId, 
+        currentValue: newValue 
+      });
+    }
+  };
+
+  const handleDecrementProgress = async (goalId: string) => {
+    const goal = goals.find((g: any) => g.id === goalId) as any;
+    if (goal) {
+      const newValue = Math.max((goal.currentValue || 0) - 1, 0);
+      await updateProgressMutation.mutateAsync({ 
+        goalId, 
+        currentValue: newValue 
+      });
+    }
+  };
+
+  const handleMarkComplete = async (goalId: string) => {
+    const goal = goals.find((g: any) => g.id === goalId) as any;
+    if (goal) {
+      await updateProgressMutation.mutateAsync({ 
+        goalId, 
+        currentValue: goal.targetValue || 0 
       });
     }
   };
@@ -100,16 +124,27 @@ export function GoalsPage() {
   // Show goals list (default view)
   return (
     <div className="min-h-screen bg-fitness-background p-6">
-      <div className="max-w-6xl mx-auto">
+      <div className="">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-fitness-foreground mb-2">
-              Your Goals
-            </h1>
-            <p className="text-fitness-muted-foreground">
-              Track your fitness progress and stay motivated
-            </p>
+          <div className="flex items-start flex-col">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/dashboard")}
+              className="bg-[#212121] hover:bg-[#262626] mb-6 py-1 h-fit text-[0.8rem] -mt-2"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Dashboard
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-fitness-foreground mb-2">
+                Your Goals
+              </h1>
+              <p className="text-fitness-muted-foreground">
+                Track your fitness progress and stay motivated
+              </p>
+            </div>
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
@@ -157,7 +192,9 @@ export function GoalsPage() {
                 }}
                 onEdit={() => handleEditGoal(goal.id)}
                 onDelete={() => handleDeleteGoal(goal.id)}
-                onUpdateProgress={() => handleUpdateProgress(goal.id)}
+                onIncrement={() => handleIncrementProgress(goal.id)}
+                onDecrement={() => handleDecrementProgress(goal.id)}
+                onMarkComplete={() => handleMarkComplete(goal.id)}
                 onStartWorkout={() => handleStartWorkout(goal.id)}
                 isDeleting={deleteGoalMutation.isPending}
               />
@@ -235,14 +272,6 @@ export function GoalsPage() {
           />
         )}
 
-        {/* Update Progress Modal */}
-        {updatingProgressGoal && (
-          <UpdateProgressModal
-            isOpen={!!updatingProgressGoal}
-            onClose={() => setUpdatingProgressGoal(null)}
-            goal={updatingProgressGoal}
-          />
-        )}
       </div>
     </div>
   );

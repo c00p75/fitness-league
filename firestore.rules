@@ -1,64 +1,9 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Helper functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function isValidUser(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    // Public data - read-only for authenticated users
-    match /artifacts/{appId}/public/data/{collection}/{document} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Public data is read-only
-    }
-    
-    // User private data - scoped to user ID
-    match /artifacts/{appId}/users/{userId}/{collection}/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // User profile - special handling
-    match /artifacts/{appId}/users/{userId}/profile/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // User onboarding data
-    match /artifacts/{appId}/users/{userId}/onboarding/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // User goals
-    match /artifacts/{appId}/users/{userId}/goals/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // User workout logs
-    match /artifacts/{appId}/users/{userId}/workoutLogs/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // User exercise sets
-    match /artifacts/{appId}/users/{userId}/exerciseSets/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // User badges
-    match /artifacts/{appId}/users/{userId}/userBadges/{document} {
-      allow read, write: if isValidUser(userId);
-    }
-    
-    // Deny all other access
-    match /{document=**} {
-      allow read, write: if false;
+    // Users can only access their own data
+    match /artifacts/fit-league-930c6/users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
   }
 }

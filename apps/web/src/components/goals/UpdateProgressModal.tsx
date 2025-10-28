@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { trpc } from "../../lib/trpc";
+import { useMutation } from "@tanstack/react-query";
+import { updateGoalProgress } from "../../services/firestore/goalsService";
 import { Button } from "@fitness-league/ui";
 import { Card } from "@fitness-league/ui";
 import { Input } from "@fitness-league/ui";
@@ -20,14 +21,7 @@ interface UpdateProgressModalProps {
   };
 }
 
-const goalTypeIcons = {
-  weight_loss: "🔥",
-  muscle_gain: "💪",
-  flexibility: "🧘",
-  general_fitness: "🏃",
-  endurance_improvement: "⚡",
-  strength_gain: "🏋️",
-};
+// Removed emoji icons for cleaner design
 
 const goalTypeLabels = {
   weight_loss: "Weight Loss",
@@ -49,9 +43,11 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
     setIsCompleted(false);
   }, [goal]);
 
-  const updateProgressMutation = trpc.goals.updateGoalProgress.useMutation({
+  const updateProgressMutation = useMutation({
+    mutationFn: ({ goalId, currentValue }: { goalId: string; currentValue: number }) =>
+      updateGoalProgress(goalId, currentValue),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [["goals", "getGoals"]] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
       
       // Show different success messages based on progress
       const progressPercentage = (variables.currentValue / goal.targetValue) * 100;
@@ -59,7 +55,7 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
       if (progressPercentage >= 100) {
         setIsCompleted(true);
         // Show goal completed toast
-        toast.success("Goal Completed! 🎉", {
+        toast.success("Goal Completed!", {
           duration: 4000,
           style: {
             background: '#10b981',
@@ -126,7 +122,7 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md bg-card rounded-lg shadow-xl">
         <div className="p-6">
           {/* Header */}
@@ -152,9 +148,6 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
           {/* Goal Info */}
           <div className="mb-6 p-4 bg-fitness-primary/5 rounded-lg">
             <div className="flex items-center mb-2">
-              <span className="text-2xl mr-2">
-                {goalTypeIcons[goal.type as keyof typeof goalTypeIcons] || "🎯"}
-              </span>
               <h3 className="font-semibold text-fitness-foreground">
                 {goalTypeLabels[goal.type as keyof typeof goalTypeLabels] || goal.type}
               </h3>
@@ -192,7 +185,7 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center text-green-700">
                 <CheckCircle className="w-5 h-5 mr-2" />
-                <span className="font-medium">Goal Completed! 🎉</span>
+                <span className="font-medium">Goal Completed!</span>
               </div>
             </div>
           )}
@@ -279,10 +272,10 @@ export function UpdateProgressModal({ isOpen, onClose, goal }: UpdateProgressMod
             {/* Motivational Message */}
             {progressPercentage > 0 && progressPercentage < 100 && (
               <div className="text-center text-sm text-fitness-muted-foreground">
-                {progressPercentage < 25 && "Keep going! Every step counts 💪"}
-                {progressPercentage >= 25 && progressPercentage < 50 && "Great progress! You're on track 🎯"}
-                {progressPercentage >= 50 && progressPercentage < 75 && "You're halfway there! Keep it up 🔥"}
-                {progressPercentage >= 75 && progressPercentage < 100 && "Almost there! You're so close! ⚡"}
+                {progressPercentage < 25 && "Keep going! Every step counts"}
+                {progressPercentage >= 25 && progressPercentage < 50 && "Great progress! You're on track"}
+                {progressPercentage >= 50 && progressPercentage < 75 && "You're halfway there! Keep it up"}
+                {progressPercentage >= 75 && progressPercentage < 100 && "Almost there! You're so close!"}
               </div>
             )}
 

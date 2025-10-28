@@ -5,7 +5,7 @@ export const BiometricsSchema = z.object({
   age: z.number().min(13, "Must be at least 13 years old").max(120, "Invalid age"),
   height: z.number().min(100, "Height must be at least 100cm").max(250, "Height must be less than 250cm"),
   weight: z.number().min(30, "Weight must be at least 30kg").max(300, "Weight must be less than 300kg"),
-  gender: z.enum(["male", "female", "other"]),
+  gender: z.enum(["male", "female"]),
 });
 
 export const UserProfileSchema = z.object({

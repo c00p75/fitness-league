@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Play, Pause, SkipBack, SkipForward, List, X, CheckCircle } from "lucide-react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Progress } from "@fitness-league/ui";
 import { cn } from "@fitness-league/ui";
 import { YouTubePlayer } from "./YouTubePlayer";
-import { WorkoutPlaylist, Exercise } from "./PlaylistManager";
+import { WorkoutPlaylist } from "./PlaylistManager";
 
 interface PlaylistPlayerProps {
   playlist: WorkoutPlaylist;
@@ -24,7 +24,7 @@ export function PlaylistPlayer({
   const [isPlaying, setIsPlaying] = useState(false);
   const [completedVideos, setCompletedVideos] = useState<Set<string>>(new Set());
   const [showPlaylist, setShowPlaylist] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
+  // Removed unused videoProgress
 
   const currentVideo = playlist.videos[currentVideoIndex];
   const progress = ((currentVideoIndex + 1) / playlist.videos.length) * 100;
@@ -43,7 +43,7 @@ export function PlaylistPlayer({
       // Auto-advance to next video
       if (currentVideoIndex < playlist.videos.length - 1) {
         setCurrentVideoIndex(prev => prev + 1);
-        setVideoProgress(0);
+        // Removed unused setVideoProgress call
       }
     }
   };
@@ -55,28 +55,24 @@ export function PlaylistPlayer({
   const handleNext = () => {
     if (currentVideoIndex < playlist.videos.length - 1) {
       setCurrentVideoIndex(prev => prev + 1);
-      setVideoProgress(0);
+      // Removed unused setVideoProgress call
     }
   };
 
   const handlePrevious = () => {
     if (currentVideoIndex > 0) {
       setCurrentVideoIndex(prev => prev - 1);
-      setVideoProgress(0);
+      // Removed unused setVideoProgress call
     }
   };
 
   const handleVideoSelect = (index: number) => {
     setCurrentVideoIndex(index);
-    setVideoProgress(0);
+    // Removed unused setVideoProgress call
     setShowPlaylist(false);
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // Removed unused formatTime function
 
   if (!currentVideo) {
     return (
