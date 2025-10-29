@@ -37,14 +37,6 @@ export function DashboardPage() {
 
   const activeGoals = goals.filter((goal: any) => goal.isActive !== false);
   
-  // Debug logging
-  console.log('=== DASHBOARD DEBUG ===');
-  console.log('Goals:', goals);
-  console.log('Active Goals:', activeGoals);
-  console.log('All Plans:', allPlans);
-  console.log('Recent Plans:', recentPlans);
-  console.log('Profile:', profile);
-  
   const completedGoals = goals.filter((goal: any) => (goal.currentValue || 0) >= (goal.targetValue || 0));
   const upcomingDeadlines = goals.filter((goal: any) => {
     const targetDate = goal.targetDate?.toDate ? goal.targetDate.toDate() : new Date(goal.targetDate);
@@ -130,16 +122,8 @@ export function DashboardPage() {
       }
     }
     
-    const imageName = imageMap[goalType] || 'general_fitness';
-    const imagePath = `/images/workouts/${imageName}_${gender}.jpg`;
-    
-    console.log('=== WORKOUT IMAGE DEBUG ===');
-    console.log('Plan:', plan);
-    console.log('Goal Type:', goalType);
-    console.log('Gender:', gender);
-    console.log('Image Path:', imagePath);
-    
-    return imagePath;
+        const imageName = imageMap[goalType] || 'general_fitness';
+        return `/images/workouts/${imageName}_${gender}.jpg`;
   };
 
   // Carousel effect for multiple goals

@@ -155,7 +155,26 @@ export async function getPlans(goalId?: string) {
     );
   }
   
-  const snapshot = await getDocs(q);
+  let snapshot;
+  try {
+    snapshot = await getDocs(q);
+  } catch (error: any) {
+    // If the error is due to missing index, try without orderBy
+    if (error?.code === 'failed-precondition' || error?.message?.includes('index')) {
+      const simpleQuery = goalId 
+        ? query(
+            collection(db, `artifacts/${PROJECT_ID}/users/${uid}/workoutPlans`),
+            where('goalId', '==', goalId)
+          )
+        : query(collection(db, `artifacts/${PROJECT_ID}/users/${uid}/workoutPlans`));
+      const simpleSnapshot = await getDocs(simpleQuery);
+      return simpleSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data() as any
+      }));
+    }
+    throw error;
+  }
   
   return snapshot.docs.map(doc => ({
     id: doc.id,
