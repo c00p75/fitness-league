@@ -93,7 +93,7 @@
 
 ## 🚀 Live Demo <a name="deployment-link"></a>
 
-Live demo: [Coming soon]()
+Live demo: [Fitness League](https://fit-league-930c6.web.app/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
